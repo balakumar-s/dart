@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2017, The DART development contributors
+ * Copyright (c) 2011-2019, The DART development contributors
  * All rights reserved.
  *
  * The list of contributors can be found at:
@@ -47,7 +47,6 @@ class Skeleton;
 class ZeroDofJoint : public Joint
 {
 public:
-
   struct Properties : Joint::Properties
   {
     Properties(const Joint::Properties& _properties = Joint::Properties());
@@ -73,7 +72,7 @@ public:
   const DegreeOfFreedom* getDof(std::size_t) const override;
 
   // Documentation inherited
-  const std::string& setDofName(std::size_t, const std::string&, bool ) override;
+  const std::string& setDofName(std::size_t, const std::string&, bool) override;
 
   // Documentation inherited
   void preserveDofName(std::size_t, bool) override;
@@ -134,10 +133,22 @@ public:
   double getPositionLowerLimit(std::size_t _index) const override;
 
   // Documentation inherited
-  void setPositionUpperLimit(std::size_t _index, double _position) override;
+  void setPositionLowerLimits(const Eigen::VectorXd& lowerLimits) override;
 
   // Documentation inherited
-  double getPositionUpperLimit(std::size_t _index) const override;
+  Eigen::VectorXd getPositionLowerLimits() const override;
+
+  // Documentation inherited
+  void setPositionUpperLimit(std::size_t index, double position) override;
+
+  // Documentation inherited
+  double getPositionUpperLimit(std::size_t index) const override;
+
+  // Documentation inherited
+  void setPositionUpperLimits(const Eigen::VectorXd& upperLimits) override;
+
+  // Documentation inherited
+  Eigen::VectorXd getPositionUpperLimits() const override;
 
   // Documentation inherited
   bool hasPositionLimit(std::size_t _index) const override;
@@ -183,10 +194,22 @@ public:
   double getVelocityLowerLimit(std::size_t _index) const override;
 
   // Documentation inherited
+  void setVelocityLowerLimits(const Eigen::VectorXd& lowerLimits) override;
+
+  // Documentation inherited
+  Eigen::VectorXd getVelocityLowerLimits() const override;
+
+  // Documentation inherited
   void setVelocityUpperLimit(std::size_t _index, double _velocity) override;
 
   // Documentation inherited
   double getVelocityUpperLimit(std::size_t _index) const override;
+
+  // Documentation inherited
+  void setVelocityUpperLimits(const Eigen::VectorXd& upperLimits) override;
+
+  // Documentation inherited
+  Eigen::VectorXd getVelocityUpperLimits() const override;
 
   // Documentation inherited
   void resetVelocity(std::size_t _index) override;
@@ -226,16 +249,30 @@ public:
   void resetAccelerations() override;
 
   // Documentation inherited
-  void setAccelerationLowerLimit(std::size_t _index, double _acceleration) override;
+  void setAccelerationLowerLimit(
+      std::size_t _index, double _acceleration) override;
 
   // Documentation inherited
   double getAccelerationLowerLimit(std::size_t _index) const override;
 
   // Documentation inherited
-  void setAccelerationUpperLimit(std::size_t _index, double _acceleration) override;
+  void setAccelerationLowerLimits(const Eigen::VectorXd& lowerLimits) override;
+
+  // Documentation inherited
+  Eigen::VectorXd getAccelerationLowerLimits() const override;
+
+  // Documentation inherited
+  void setAccelerationUpperLimit(
+      std::size_t _index, double _acceleration) override;
 
   // Documentation inherited
   double getAccelerationUpperLimit(std::size_t _index) const override;
+
+  // Documentation inherited
+  void setAccelerationUpperLimits(const Eigen::VectorXd& upperLimits) override;
+
+  // Documentation inherited
+  Eigen::VectorXd getAccelerationUpperLimits() const override;
 
   //----------------------------------------------------------------------------
   // Force
@@ -245,7 +282,7 @@ public:
   void setForce(std::size_t _index, double _force) override;
 
   // Documentation inherited
-  double getForce(std::size_t _index) override;
+  double getForce(std::size_t _index) const override;
 
   // Documentation inherited
   void setForces(const Eigen::VectorXd& _forces) override;
@@ -263,10 +300,22 @@ public:
   double getForceLowerLimit(std::size_t _index) const override;
 
   // Documentation inherited
+  void setForceLowerLimits(const Eigen::VectorXd& lowerLimits) override;
+
+  // Documentation inherited
+  Eigen::VectorXd getForceLowerLimits() const override;
+
+  // Documentation inherited
   void setForceUpperLimit(std::size_t _index, double _force) override;
 
   // Documentation inherited
   double getForceUpperLimit(std::size_t _index) const override;
+
+  // Documentation inherited
+  void setForceUpperLimits(const Eigen::VectorXd& upperLimits) override;
+
+  // Documentation inherited
+  Eigen::VectorXd getForceUpperLimits() const override;
 
   //----------------------------------------------------------------------------
   // Velocity change
@@ -347,7 +396,6 @@ public:
   Eigen::Vector6d getBodyConstraintWrench() const override;
 
 protected:
-
   /// Constructor called by inheriting classes
   ZeroDofJoint();
 
@@ -396,13 +444,11 @@ protected:
       const Eigen::Matrix6d& _childArtInertia) override;
 
   // Documentation inherited
-  void updateInvProjArtInertia(
-      const Eigen::Matrix6d& _artInertia) override;
+  void updateInvProjArtInertia(const Eigen::Matrix6d& _artInertia) override;
 
   // Documentation inherited
   void updateInvProjArtInertiaImplicit(
-      const Eigen::Matrix6d& _artInertia,
-      double _timeStep) override;
+      const Eigen::Matrix6d& _artInertia, double _timeStep) override;
 
   // Documentation inherited
   void addChildBiasForceTo(
@@ -418,12 +464,11 @@ protected:
       const Eigen::Vector6d& _childBiasImpulse) override;
 
   // Documentation inherited
-  void updateTotalForce(const Eigen::Vector6d& _bodyForce,
-                                  double _timeStep) override;
+  void updateTotalForce(
+      const Eigen::Vector6d& _bodyForce, double _timeStep) override;
 
   // Documentation inherited
-  void updateTotalImpulse(
-      const Eigen::Vector6d& _bodyImpulse) override;
+  void updateTotalImpulse(const Eigen::Vector6d& _bodyImpulse) override;
 
   // Documentation inherited
   void resetTotalImpulses() override;
@@ -439,16 +484,18 @@ protected:
       const Eigen::Vector6d& _velocityChange) override;
 
   // Documentation inherited
-  void updateForceID(const Eigen::Vector6d& _bodyForce,
-                             double _timeStep,
-                             bool _withDampingForces,
-                             bool _withSpringForces) override;
+  void updateForceID(
+      const Eigen::Vector6d& _bodyForce,
+      double _timeStep,
+      bool _withDampingForces,
+      bool _withSpringForces) override;
 
   // Documentation inherited
-  void updateForceFD(const Eigen::Vector6d& _bodyForce,
-                             double _timeStep,
-                             bool _withDampingForces,
-                             bool _withSpringForces) override;
+  void updateForceFD(
+      const Eigen::Vector6d& _bodyForce,
+      double _timeStep,
+      bool _withDampingForces,
+      bool _withSpringForces) override;
 
   // Documentation inherited
   void updateImpulseID(const Eigen::Vector6d& _bodyImpulse) override;
@@ -482,16 +529,18 @@ protected:
       const Eigen::Vector6d& _bodyForce) override;
 
   // Documentation inherited
-  void getInvMassMatrixSegment(Eigen::MatrixXd& _invMassMat,
-                                       const std::size_t _col,
-                                       const Eigen::Matrix6d& _artInertia,
-                                       const Eigen::Vector6d& _spatialAcc) override;
+  void getInvMassMatrixSegment(
+      Eigen::MatrixXd& _invMassMat,
+      const std::size_t _col,
+      const Eigen::Matrix6d& _artInertia,
+      const Eigen::Vector6d& _spatialAcc) override;
 
   // Documentation inherited
-  void getInvAugMassMatrixSegment(Eigen::MatrixXd& _invMassMat,
-                                          const std::size_t _col,
-                                          const Eigen::Matrix6d& _artInertia,
-                                          const Eigen::Vector6d& _spatialAcc) override;
+  void getInvAugMassMatrixSegment(
+      Eigen::MatrixXd& _invMassMat,
+      const std::size_t _col,
+      const Eigen::Matrix6d& _artInertia,
+      const Eigen::Vector6d& _spatialAcc) override;
 
   // Documentation inherited
   void addInvMassMatrixSegmentTo(Eigen::Vector6d& _acc) override;
@@ -503,12 +552,11 @@ protected:
   /// \}
 
 private:
-
   /// Used by getDofName()
   const std::string emptyString;
 };
 
-}  // namespace dynamics
-}  // namespace dart
+} // namespace dynamics
+} // namespace dart
 
-#endif  // DART_DYNAMICS_ZERODOFJOINT_HPP_
+#endif // DART_DYNAMICS_ZERODOFJOINT_HPP_

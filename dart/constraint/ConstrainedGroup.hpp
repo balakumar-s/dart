@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2017, The DART development contributors
+ * Copyright (c) 2011-2019, The DART development contributors
  * All rights reserved.
  *
  * The list of contributors can be found at:
@@ -33,8 +33,8 @@
 #ifndef DART_CONSTRAINT_CONSTRAINEDGROUP_HPP_
 #define DART_CONSTRAINT_CONSTRAINEDGROUP_HPP_
 
-#include <vector>
 #include <memory>
+#include <vector>
 #include <Eigen/Dense>
 
 #include "dart/constraint/SmartPointer.hpp"
@@ -43,7 +43,7 @@ namespace dart {
 
 namespace dynamics {
 class Skeleton;
-}  // namespace dynamics
+} // namespace dynamics
 
 namespace constraint {
 
@@ -78,7 +78,10 @@ public:
   std::size_t getNumConstraints() const;
 
   /// Return a constraint
-  ConstraintBasePtr getConstraint(std::size_t _index) const;
+  ConstraintBasePtr getConstraint(std::size_t _index);
+
+  /// Return a constraint
+  ConstConstraintBasePtr getConstraint(std::size_t _index) const;
 
   /// Remove constraint
   void removeConstraint(const ConstraintBasePtr& _constraint);
@@ -108,8 +111,7 @@ private:
   std::shared_ptr<dynamics::Skeleton> mRootSkeleton;
 };
 
-}  // namespace constraint
-}  // namespace dart
+} // namespace constraint
+} // namespace dart
 
-#endif  // DART_CONSTRAINT_CONSTRAINEDGROUP_HPP_
-
+#endif // DART_CONSTRAINT_CONSTRAINEDGROUP_HPP_

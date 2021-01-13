@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2017, The DART development contributors
+ * Copyright (c) 2011-2019, The DART development contributors
  * All rights reserved.
  *
  * The list of contributors can be found at:
@@ -32,11 +32,17 @@
 
 #include "dart/collision/CollisionFilter.hpp"
 
-#include "dart/dynamics/BodyNode.hpp"
 #include "dart/collision/CollisionObject.hpp"
+#include "dart/dynamics/BodyNode.hpp"
 
 namespace dart {
 namespace collision {
+
+//==============================================================================
+CollisionFilter::~CollisionFilter()
+{
+  // Do nothing
+}
 
 //==============================================================================
 bool CollisionFilter::needCollision(
@@ -57,7 +63,7 @@ void CompositeCollisionFilter::addCollisionFilter(const CollisionFilter* filter)
 
 //==============================================================================
 void CompositeCollisionFilter::removeCollisionFilter(
-const CollisionFilter* filter)
+    const CollisionFilter* filter)
 {
   mFilters.erase(filter);
 }
@@ -129,14 +135,18 @@ bool BodyNodeCollisionFilter::ignoresCollision(
   if (!bodyNode1->isCollidable() || !bodyNode2->isCollidable())
     return true;
 
-  if (bodyNode1->getSkeleton() == bodyNode2->getSkeleton())
-  {
-    auto skeleton = bodyNode1->getSkeleton();
+  const auto& skel1 = bodyNode1->getSkeleton();
+  const auto& skel2 = bodyNode2->getSkeleton();
 
-    if (!skeleton->isEnabledSelfCollisionCheck())
+  if (!skel1->isMobile() && !skel2->isMobile())
+    return true;
+
+  if (skel1 == skel2)
+  {
+    if (!skel1->isEnabledSelfCollisionCheck())
       return true;
 
-    if (!skeleton->isEnabledAdjacentBodyCheck())
+    if (!skel1->isEnabledAdjacentBodyCheck())
     {
       if (areAdjacentBodies(bodyNode1, bodyNode2))
         return true;

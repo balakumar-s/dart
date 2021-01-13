@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2017, The DART development contributors
+ * Copyright (c) 2011-2019, The DART development contributors
  * All rights reserved.
  *
  * The list of contributors can be found at:
@@ -33,8 +33,8 @@
 #include "dart/dynamics/MultiSphereConvexHullShape.hpp"
 
 #include "dart/common/Console.hpp"
-#include "dart/math/Helpers.hpp"
 #include "dart/dynamics/BoxShape.hpp"
+#include "dart/math/Helpers.hpp"
 
 namespace dart {
 namespace dynamics {
@@ -66,25 +66,32 @@ const std::string& MultiSphereConvexHullShape::getStaticType()
 }
 
 //==============================================================================
-void MultiSphereConvexHullShape::addSpheres(const MultiSphereConvexHullShape::Spheres& spheres)
+void MultiSphereConvexHullShape::addSpheres(
+    const MultiSphereConvexHullShape::Spheres& spheres)
 {
   mSpheres.insert(mSpheres.end(), spheres.begin(), spheres.end());
 
-  updateBoundingBoxDim();
-  updateVolume();
+  mIsBoundingBoxDirty = true;
+  mIsVolumeDirty = true;
+
+  incrementVersion();
 }
 
 //==============================================================================
-void MultiSphereConvexHullShape::addSphere(const MultiSphereConvexHullShape::Sphere& sphere)
+void MultiSphereConvexHullShape::addSphere(
+    const MultiSphereConvexHullShape::Sphere& sphere)
 {
   mSpheres.push_back(sphere);
 
-  updateBoundingBoxDim();
-  updateVolume();
+  mIsBoundingBoxDirty = true;
+  mIsVolumeDirty = true;
+
+  incrementVersion();
 }
 
 //==============================================================================
-void MultiSphereConvexHullShape::addSphere(double radius, const Eigen::Vector3d& position)
+void MultiSphereConvexHullShape::addSphere(
+    double radius, const Eigen::Vector3d& position)
 {
   addSphere(std::make_pair(radius, position));
 }
@@ -94,8 +101,10 @@ void MultiSphereConvexHullShape::removeAllSpheres()
 {
   mSpheres.clear();
 
-  updateBoundingBoxDim();
-  updateVolume();
+  mIsBoundingBoxDirty = true;
+  mIsVolumeDirty = true;
+
+  incrementVersion();
 }
 
 //==============================================================================
@@ -105,7 +114,8 @@ std::size_t MultiSphereConvexHullShape::getNumSpheres() const
 }
 
 //==============================================================================
-const MultiSphereConvexHullShape::Spheres& MultiSphereConvexHullShape::getSpheres() const
+const MultiSphereConvexHullShape::Spheres&
+MultiSphereConvexHullShape::getSpheres() const
 {
   return mSpheres;
 }
@@ -114,17 +124,11 @@ const MultiSphereConvexHullShape::Spheres& MultiSphereConvexHullShape::getSphere
 Eigen::Matrix3d MultiSphereConvexHullShape::computeInertia(double mass) const
 {
   // Use bounding box to represent the mesh
-  return BoxShape::computeInertia(mBoundingBox.computeFullExtents(), mass);
+  return BoxShape::computeInertia(getBoundingBox().computeFullExtents(), mass);
 }
 
 //==============================================================================
-void MultiSphereConvexHullShape::updateVolume()
-{
-  mVolume = BoxShape::computeVolume(mBoundingBox.computeFullExtents());
-}
-
-//==============================================================================
-void MultiSphereConvexHullShape::updateBoundingBoxDim()
+void MultiSphereConvexHullShape::updateBoundingBox() const
 {
   Eigen::Vector3d min
       = Eigen::Vector3d::Constant(std::numeric_limits<double>::max());
@@ -142,7 +146,16 @@ void MultiSphereConvexHullShape::updateBoundingBoxDim()
 
   mBoundingBox.setMin(min);
   mBoundingBox.setMax(max);
+
+  mIsBoundingBoxDirty = false;
 }
 
-}  // namespace dynamics
-}  // namespace dart
+//==============================================================================
+void MultiSphereConvexHullShape::updateVolume() const
+{
+  mVolume = BoxShape::computeVolume(mBoundingBox.computeFullExtents());
+  mIsVolumeDirty = false;
+}
+
+} // namespace dynamics
+} // namespace dart

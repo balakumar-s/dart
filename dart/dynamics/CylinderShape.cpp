@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2017, The DART development contributors
+ * Copyright (c) 2011-2019, The DART development contributors
  * All rights reserved.
  *
  * The list of contributors can be found at:
@@ -38,14 +38,12 @@
 namespace dart {
 namespace dynamics {
 
+//==============================================================================
 CylinderShape::CylinderShape(double _radius, double _height)
-  : Shape(CYLINDER),
-    mRadius(_radius),
-    mHeight(_height) {
+  : Shape(CYLINDER), mRadius(_radius), mHeight(_height)
+{
   assert(0.0 < _radius);
   assert(0.0 < _height);
-  _updateBoundingBoxDim();
-  updateVolume();
 }
 
 //==============================================================================
@@ -61,26 +59,38 @@ const std::string& CylinderShape::getStaticType()
   return type;
 }
 
-double CylinderShape::getRadius() const {
+//==============================================================================
+double CylinderShape::getRadius() const
+{
   return mRadius;
 }
 
-void CylinderShape::setRadius(double _radius) {
+//==============================================================================
+void CylinderShape::setRadius(double _radius)
+{
   assert(0.0 < _radius);
   mRadius = _radius;
-  _updateBoundingBoxDim();
-  updateVolume();
+  mIsBoundingBoxDirty = true;
+  mIsVolumeDirty = true;
+
+  incrementVersion();
 }
 
-double CylinderShape::getHeight() const {
+//==============================================================================
+double CylinderShape::getHeight() const
+{
   return mHeight;
 }
 
-void CylinderShape::setHeight(double _height) {
+//==============================================================================
+void CylinderShape::setHeight(double _height)
+{
   assert(0.0 < _height);
   mHeight = _height;
-  _updateBoundingBoxDim();
-  updateVolume();
+  mIsBoundingBoxDirty = true;
+  mIsVolumeDirty = true;
+
+  incrementVersion();
 }
 
 //==============================================================================
@@ -95,8 +105,8 @@ Eigen::Matrix3d CylinderShape::computeInertia(
 {
   Eigen::Matrix3d inertia = Eigen::Matrix3d::Zero();
 
-  inertia(0, 0) = mass * (3.0 * std::pow(radius, 2) + std::pow(height, 2))
-      / 12.0;
+  inertia(0, 0)
+      = mass * (3.0 * std::pow(radius, 2) + std::pow(height, 2)) / 12.0;
   inertia(1, 1) = inertia(0, 0);
   inertia(2, 2) = 0.5 * mass * radius * radius;
 
@@ -104,9 +114,18 @@ Eigen::Matrix3d CylinderShape::computeInertia(
 }
 
 //==============================================================================
-void CylinderShape::updateVolume()
+void CylinderShape::updateBoundingBox() const
+{
+  mBoundingBox.setMin(Eigen::Vector3d(-mRadius, -mRadius, -mHeight * 0.5));
+  mBoundingBox.setMax(Eigen::Vector3d(mRadius, mRadius, mHeight * 0.5));
+  mIsBoundingBoxDirty = false;
+}
+
+//==============================================================================
+void CylinderShape::updateVolume() const
 {
   mVolume = computeVolume(mRadius, mHeight);
+  mIsVolumeDirty = false;
 }
 
 //==============================================================================
@@ -115,10 +134,5 @@ Eigen::Matrix3d CylinderShape::computeInertia(double mass) const
   return computeInertia(mRadius, mHeight, mass);
 }
 
-void CylinderShape::_updateBoundingBoxDim() {
-  mBoundingBox.setMin(Eigen::Vector3d(-mRadius, -mRadius, -mHeight * 0.5));
-  mBoundingBox.setMax(Eigen::Vector3d(mRadius, mRadius, mHeight * 0.5));
-}
-
-}  // namespace dynamics
-}  // namespace dart
+} // namespace dynamics
+} // namespace dart

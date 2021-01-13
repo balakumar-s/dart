@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2017, The DART development contributors
+ * Copyright (c) 2011-2019, The DART development contributors
  * All rights reserved.
  *
  * The list of contributors can be found at:
@@ -35,8 +35,8 @@
 
 #include <map>
 
-#include <osg/MatrixTransform>
 #include <osg/Material>
+#include <osg/MatrixTransform>
 
 #include "dart/gui/osg/render/ShapeNode.hpp"
 
@@ -59,23 +59,23 @@ class MeshShapeGeometry;
 class MeshShapeNode : public ShapeNode, public ::osg::MatrixTransform
 {
 public:
-
-  MeshShapeNode(std::shared_ptr<dart::dynamics::MeshShape> shape,
-                ShapeFrameNode* parentNode);
+  MeshShapeNode(
+      std::shared_ptr<dart::dynamics::MeshShape> shape,
+      ShapeFrameNode* parentNode);
 
   void refresh();
   void extractData(bool firstTime);
 
   ::osg::Material* getMaterial(std::size_t index) const;
+  std::vector<std::string> getTextureImagePaths(std::size_t index) const;
 
 protected:
-
   virtual ~MeshShapeNode();
 
   std::shared_ptr<dart::dynamics::MeshShape> mMeshShape;
   osgAiNode* mRootAiNode;
-  std::vector< ::osg::ref_ptr<::osg::Material> > mMaterials;
-
+  std::vector<::osg::ref_ptr<::osg::Material>> mMaterials;
+  std::vector<std::vector<std::string>> mTextureImageArrays;
 };
 
 } // namespace render

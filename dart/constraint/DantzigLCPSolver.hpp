@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2017, The DART development contributors
+ * Copyright (c) 2011-2019, The DART development contributors
  * All rights reserved.
  *
  * The list of contributors can be found at:
@@ -41,6 +41,9 @@
 namespace dart {
 namespace constraint {
 
+/// \deprecated This header has been deprecated in DART 6.7. Please include
+/// DantzigBoxedLcpSolver.hpp intead.
+///
 /// DantzigLCPSolver is a LCP solver that uses ODE's implementation of Dantzig
 /// algorithm
 class DantzigLCPSolver : public LCPSolver
@@ -61,16 +64,23 @@ private:
   bool isSymmetric(std::size_t _n, double* _A);
 
   /// Return true if the diagonla block of matrix is symmetric
-  bool isSymmetric(std::size_t _n, double* _A, std::size_t _begin, std::size_t _end);
+  bool isSymmetric(
+      std::size_t _n, double* _A, std::size_t _begin, std::size_t _end);
 
   /// Print debug information
-  void print(std::size_t _n, double* _A, double* _x, double* _lo, double* _hi,
-             double* _b, double* w, int* _findex);
+  void print(
+      std::size_t _n,
+      double* _A,
+      double* _x,
+      double* _lo,
+      double* _hi,
+      double* _b,
+      double* w,
+      int* _findex);
 #endif
 };
 
 } // namespace constraint
 } // namespace dart
 
-#endif  // DART_CONSTRAINT_DANTZIGLCPSOLVER_HPP_
-
+#endif // DART_CONSTRAINT_DANTZIGLCPSOLVER_HPP_

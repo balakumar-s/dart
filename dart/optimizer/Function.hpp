@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2017, The DART development contributors
+ * Copyright (c) 2011-2019, The DART development contributors
  * All rights reserved.
  *
  * The list of contributors can be found at:
@@ -33,9 +33,9 @@
 #ifndef DART_OPTIMIZER_FUNCTION_HPP_
 #define DART_OPTIMIZER_FUNCTION_HPP_
 
-#include <memory>
-#include <string>
 #include <functional>
+#include <memory>
+#include <vector>
 
 #include <Eigen/Dense>
 
@@ -46,52 +46,52 @@ class Function
 {
 public:
   /// Constructor
-  explicit Function(const std::string& name = "function");
+  explicit Function(const std::string& _name = "function");
 
   /// Destructor
   virtual ~Function();
 
-  /// Set the name of this Function
+  /// Sets the name of this Function
   virtual void setName(const std::string& newName);
 
-  /// Get the name of this Function
+  /// Returns the name of this Function
   const std::string& getName() const;
 
-  /// Evaluate and return the objective function at the point x
-  virtual double eval(const Eigen::VectorXd& x) const = 0;
+  /// Evaluates and returns the objective function at the point x
+  virtual double eval(const Eigen::VectorXd& x) = 0;
 
-  /// Evaluate and return the objective function at the point x
-  virtual void evalGradient(const Eigen::VectorXd& x,
-                            Eigen::Map<Eigen::VectorXd> grad) const;
+  /// Evaluates and returns the objective function at the point x
+  virtual void evalGradient(
+      const Eigen::VectorXd& _x, Eigen::Map<Eigen::VectorXd> _grad);
 
-  /// Evaluate and return the objective function at the point x.
+  /// Evaluates and return the objective function at the point x.
   ///
   /// If you have a raw array that the gradient will be passed in, then use
   /// evalGradient(const Eigen::VectorXd&, Eigen::Map<Eigen::VectorXd>)
   /// for better performance.
-  void evalGradient(const Eigen::VectorXd& x, Eigen::VectorXd& grad) const;
+  void evalGradient(const Eigen::VectorXd& _x, Eigen::VectorXd& _grad);
 
-  /// Evaluate and return the objective function at the point x
+  /// Evaluates and return the objective function at the point x
   virtual void evalHessian(
-      const Eigen::VectorXd& x,
-      Eigen::Map<Eigen::VectorXd, Eigen::RowMajor> Hess) const;
+      const Eigen::VectorXd& _x,
+      Eigen::Map<Eigen::VectorXd, Eigen::RowMajor> _Hess);
 
 protected:
   /// Name of this function
   std::string mName;
-
 };
 
-using FunctionPtr = std::shared_ptr<Function>;
+typedef std::shared_ptr<Function> FunctionPtr;
+typedef std::unique_ptr<Function> UniqueFunctionPtr;
 
-using CostFunction = std::function<double(const Eigen::VectorXd&)>;
+typedef std::function<double(const Eigen::VectorXd&)> CostFunction;
 
-using GradientFunction = std::function<void(
-    const Eigen::VectorXd&, Eigen::Map<Eigen::VectorXd>)>;
+typedef std::function<void(const Eigen::VectorXd&, Eigen::Map<Eigen::VectorXd>)>
+    GradientFunction;
 
-using HessianFunction = std::function<void(
-    const Eigen::VectorXd&,
-    Eigen::Map<Eigen::VectorXd, Eigen::RowMajor>)>;
+typedef std::function<void(
+    const Eigen::VectorXd&, Eigen::Map<Eigen::VectorXd, Eigen::RowMajor>)>
+    HessianFunction;
 
 /// ModularFunction uses C++11 std::function to allow you to easily swap
 /// out the cost function, gradient function, and Hessian function during
@@ -100,35 +100,35 @@ class ModularFunction : public Function
 {
 public:
   /// Constructor
-  explicit ModularFunction(const std::string& name = "modular_function");
+  explicit ModularFunction(const std::string& _name = "modular_function");
 
   /// Destructor
-  virtual ~ModularFunction();
+  ~ModularFunction() override;
 
   /// eval() will now call whatever CostFunction you set using
   /// setCostFunction()
-  double eval(const Eigen::VectorXd& x) const override;
+  double eval(const Eigen::VectorXd& _x) override;
 
   /// evalGradient() will now call whatever GradientFunction you set
   /// using setGradientFunction()
-  void evalGradient(const Eigen::VectorXd& x,
-                    Eigen::Map<Eigen::VectorXd> grad) const override;
+  void evalGradient(
+      const Eigen::VectorXd& _x, Eigen::Map<Eigen::VectorXd> _grad) override;
 
   /// evalHessian() will now call whatever HessianFunction you set using
   /// setHessianFunction()
   void evalHessian(
-      const Eigen::VectorXd& x,
-      Eigen::Map<Eigen::VectorXd, Eigen::RowMajor> Hess) const override;
+      const Eigen::VectorXd& _x,
+      Eigen::Map<Eigen::VectorXd, Eigen::RowMajor> _Hess) override;
 
   /// Set the function that gets called by eval()
-  void setCostFunction(CostFunction cost);
+  void setCostFunction(CostFunction _cost);
 
   /// Replace the cost function with a constant-zero function. Passing in
   /// true will cause a warning to be printed out whenever eval() is called.
-  void clearCostFunction(bool printWarning = true);
+  void clearCostFunction(bool _printWarning = true);
 
   /// Set the function that gets called by evalGradient()
-  void setGradientFunction(GradientFunction gradient);
+  void setGradientFunction(GradientFunction _gradient);
 
   /// Replace the gradient function with the default evalGradient() of
   /// the base Function class. A warning will be printed whenever evalGradient()
@@ -136,7 +136,7 @@ public:
   void clearGradientFunction();
 
   /// Set the function that gets called by evalHessian()
-  void setHessianFunction(HessianFunction hessian);
+  void setHessianFunction(HessianFunction _hessian);
 
   /// Replace the Hessian function with the default evalHessian() of the
   /// base Function class. A warning will be printed whenever evalHessian() gets
@@ -159,26 +159,27 @@ class NullFunction : public Function
 {
 public:
   /// Constructor
-  explicit NullFunction(const std::string& name = "null_function");
+  explicit NullFunction(const std::string& _name = "null_function");
 
   /// Destructor
-  virtual ~NullFunction();
+  ~NullFunction() override;
 
   /// eval() will always return exactly zero
-  double eval(const Eigen::VectorXd&) const override;
+  double eval(const Eigen::VectorXd&) override;
 
-  /// evalGradient will always set grad to a zero vector that
+  /// evalGradient will always set _grad to a zero vector that
   /// matches the dimensionality of _x
-  void evalGradient(const Eigen::VectorXd& x,
-                    Eigen::Map<Eigen::VectorXd> grad) const override;
+  void evalGradient(
+      const Eigen::VectorXd& _x, Eigen::Map<Eigen::VectorXd> _grad) override;
 
-  /// evalHessian() will always set Hess to a zero matrix that matches
+  /// evalHessian() will always set _Hess to a zero matrix that matches
   /// the dimensionality of _x
   void evalHessian(
       const Eigen::VectorXd& _x,
-      Eigen::Map<Eigen::VectorXd, Eigen::RowMajor> Hess) const override;
+      Eigen::Map<Eigen::VectorXd, Eigen::RowMajor> _Hess) override;
 };
 
+/// class MultiFunction
 class MultiFunction
 {
 public:
@@ -189,13 +190,14 @@ public:
   virtual ~MultiFunction();
 
   /// Operator ()
-  virtual void operator()(const Eigen::VectorXd& x,
-                          Eigen::Map<Eigen::VectorXd>& f,
-                          Eigen::Map<Eigen::MatrixXd>& grad) = 0;
+  virtual void operator()(
+      const Eigen::VectorXd& _x,
+      Eigen::Map<Eigen::VectorXd>& _f,
+      Eigen::Map<Eigen::MatrixXd>& _grad)
+      = 0;
 };
 
-}  // namespace optimizer
-}  // namespace dart
+} // namespace optimizer
+} // namespace dart
 
-#endif  // DART_OPTIMIZER_FUNCTION_HPP_
-
+#endif // DART_OPTIMIZER_FUNCTION_HPP_

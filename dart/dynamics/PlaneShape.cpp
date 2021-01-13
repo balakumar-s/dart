@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2017, The DART development contributors
+ * Copyright (c) 2011-2019, The DART development contributors
  * All rights reserved.
  *
  * The list of contributors can be found at:
@@ -37,18 +37,14 @@ namespace dynamics {
 
 //==============================================================================
 PlaneShape::PlaneShape(const Eigen::Vector3d& _normal, double _offset)
-  : Shape(PLANE),
-    mNormal(_normal.normalized()),
-    mOffset(_offset)
+  : Shape(PLANE), mNormal(_normal.normalized()), mOffset(_offset)
 {
 }
 
 //==============================================================================
-PlaneShape::PlaneShape(const Eigen::Vector3d& _normal,
-                       const Eigen::Vector3d& _point)
-  : Shape(),
-    mNormal(_normal.normalized()),
-    mOffset(mNormal.dot(_point))
+PlaneShape::PlaneShape(
+    const Eigen::Vector3d& _normal, const Eigen::Vector3d& _point)
+  : Shape(), mNormal(_normal.normalized()), mOffset(mNormal.dot(_point))
 {
 }
 
@@ -75,6 +71,8 @@ Eigen::Matrix3d PlaneShape::computeInertia(double /*mass*/) const
 void PlaneShape::setNormal(const Eigen::Vector3d& _normal)
 {
   mNormal = _normal.normalized();
+
+  incrementVersion();
 }
 
 //==============================================================================
@@ -87,6 +85,8 @@ const Eigen::Vector3d& PlaneShape::getNormal() const
 void PlaneShape::setOffset(double _offset)
 {
   mOffset = _offset;
+
+  incrementVersion();
 }
 
 //==============================================================================
@@ -96,16 +96,16 @@ double PlaneShape::getOffset() const
 }
 
 //==============================================================================
-void PlaneShape::setNormalAndOffset(const Eigen::Vector3d& _normal,
-                                    double _offset)
+void PlaneShape::setNormalAndOffset(
+    const Eigen::Vector3d& _normal, double _offset)
 {
   setNormal(_normal);
   setOffset(_offset);
 }
 
 //==============================================================================
-void PlaneShape::setNormalAndPoint(const Eigen::Vector3d& _normal,
-                                   const Eigen::Vector3d& _point)
+void PlaneShape::setNormalAndPoint(
+    const Eigen::Vector3d& _normal, const Eigen::Vector3d& _point)
 {
   setNormal(_normal);
   setOffset(mNormal.dot(_point));
@@ -124,10 +124,22 @@ double PlaneShape::computeSignedDistance(const Eigen::Vector3d& _point) const
 }
 
 //==============================================================================
-void PlaneShape::updateVolume()
+void PlaneShape::updateBoundingBox() const
 {
-  mVolume = 0.0;
+  mBoundingBox.setMin(
+      Eigen::Vector3d::Constant(-std::numeric_limits<double>::infinity()));
+  mBoundingBox.setMax(
+      Eigen::Vector3d::Constant(std::numeric_limits<double>::infinity()));
+
+  mIsBoundingBoxDirty = false;
 }
 
-}  // namespace dynamics
-}  // namespace dart
+//==============================================================================
+void PlaneShape::updateVolume() const
+{
+  mVolume = 0.0;
+  mIsVolumeDirty = false;
+}
+
+} // namespace dynamics
+} // namespace dart

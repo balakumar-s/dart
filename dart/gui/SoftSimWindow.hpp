@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2017, The DART development contributors
+ * Copyright (c) 2011-2019, The DART development contributors
  * All rights reserved.
  *
  * The list of contributors can be found at:
@@ -39,33 +39,19 @@
 #ifndef DART_GUI_SOFTSIMWINDOW_HPP_
 #define DART_GUI_SOFTSIMWINDOW_HPP_
 
-#include "dart/gui/SimWindow.hpp"
+#pragma message(                                                               \
+    "This header is deprecated as of DART 6.6. "                               \
+    "Please use dart/gui/glut/SoftSimWindow.hpp instead.")
+
+#include "dart/common/Deprecated.hpp"
+#include "dart/gui/glut/SoftSimWindow.hpp"
 
 namespace dart {
 namespace gui {
 
-/// \brief
-class SoftSimWindow : public SimWindow
-{
-public:
-  /// \brief
-  SoftSimWindow();
+using SoftSimWindow DART_DEPRECATED(6.6) = ::dart::gui::glut::SoftSimWindow;
 
-  /// \brief
-  virtual ~SoftSimWindow();
+} // namespace gui
+} // namespace dart
 
-  /// \brief
-  void keyboard(unsigned char key, int x, int y) override;
-
-protected:
-  /// \brief
-  bool mShowPointMasses;
-
-  /// \brief
-  bool mShowMeshs;
-};
-
-}  // namespace gui
-}  // namespace dart
-
-#endif  // DART_GUI_SOFTSIMWINDOW_HPP_
+#endif // DART_GUI_SOFTSIMWINDOW_HPP_

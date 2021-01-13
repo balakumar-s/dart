@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2017, The DART development contributors
+ * Copyright (c) 2011-2019, The DART development contributors
  * All rights reserved.
  *
  * The list of contributors can be found at:
@@ -37,26 +37,18 @@
 
 #if DART_OS_LINUX || DART_OS_MACOS
 
-#include <dlfcn.h>
-#define DYNLIB_HANDLE void*
-#define DYNLIB_LOAD(a) dlopen(a, RTLD_LAZY | RTLD_GLOBAL)
-#define DYNLIB_GETSYM(a, b) dlsym(a, b)
-#define DYNLIB_UNLOAD(a) dlclose(a)
+#  include <dlfcn.h>
+#  define DYNLIB_LOAD(a) dlopen(a, RTLD_LAZY | RTLD_GLOBAL)
+#  define DYNLIB_GETSYM(a, b) dlsym(a, b)
+#  define DYNLIB_UNLOAD(a) dlclose(a)
 
 #elif DART_OS_WINDOWS
 
-#define WIN32_LEAN_AND_MEAN
-#if !defined(NOMINMAX) && defined(_MSC_VER)
-#define NOMINMAX // required to stop windows.h messing up std::min
-#endif
-#include <windows.h>
-#define DYNLIB_HANDLE hInstance
+#  define WIN32_LEAN_AND_MEAN
 // We can not use LOAD_WITH_ALTERED_SEARCH_PATH with relative paths
-#define DYNLIB_LOAD(a) LoadLibraryEx(a, nullptr, 0)
-#define DYNLIB_GETSYM(a, b) GetProcAddress(a, b)
-#define DYNLIB_UNLOAD(a) !FreeLibrary(a)
-struct HINSTANCE__;
-typedef struct HINSTANCE__* hInstance;
+#  define DYNLIB_LOAD(a) LoadLibraryEx(a, nullptr, 0)
+#  define DYNLIB_GETSYM(a, b) GetProcAddress(a, b)
+#  define DYNLIB_UNLOAD(a) !FreeLibrary(a)
 
 #endif
 
@@ -67,16 +59,29 @@ namespace common {
 std::shared_ptr<SharedLibrary> SharedLibrary::create(
     const boost::filesystem::path& path)
 {
+  return create(path.string());
+}
+
+//==============================================================================
+std::shared_ptr<SharedLibrary> SharedLibrary::create(const std::string& path)
+{
   return detail::SharedLibraryManager::getSingleton().load(path);
 }
 
 //==============================================================================
 SharedLibrary::SharedLibrary(
     ProtectedConstructionTag, const boost::filesystem::path& canonicalPath)
-  : mCanonicalPath(canonicalPath), mInstance(nullptr)
+  : SharedLibrary(ProtectedConstruction, canonicalPath.string())
 {
-  mInstance
-      = static_cast<DYNLIB_HANDLE>(DYNLIB_LOAD(canonicalPath.string().c_str()));
+  // Do nothing
+}
+
+//==============================================================================
+SharedLibrary::SharedLibrary(
+    ProtectedConstructionTag, const std::string& canonicalPath)
+  : mCanonicalPath(canonicalPath), mPath(canonicalPath), mInstance(nullptr)
+{
+  mInstance = static_cast<DYNLIB_HANDLE>(DYNLIB_LOAD(canonicalPath.c_str()));
 
   if (!mInstance)
   {
@@ -94,7 +99,7 @@ SharedLibrary::~SharedLibrary()
   if (DYNLIB_UNLOAD(mInstance))
   {
     dterr << "[SharedLibrary::~SharedLibrary] Failed to unload library '"
-          << mCanonicalPath << "': " << getLastError() << "\n";
+          << mPath << "': " << getLastError() << "\n";
   }
 }
 
@@ -102,6 +107,12 @@ SharedLibrary::~SharedLibrary()
 const boost::filesystem::path& SharedLibrary::getCanonicalPath() const
 {
   return mCanonicalPath;
+}
+
+//==============================================================================
+const std::string& SharedLibrary::path() const
+{
+  return mPath;
 }
 
 //==============================================================================
@@ -136,19 +147,17 @@ std::string SharedLibrary::getLastError() const
 #elif DART_OS_WINDOWS
   LPTSTR lpMsgBuf;
   FormatMessage(
-        FORMAT_MESSAGE_ALLOCATE_BUFFER |
-        FORMAT_MESSAGE_FROM_SYSTEM |
-        FORMAT_MESSAGE_IGNORE_INSERTS,
-        nullptr,
-        GetLastError(),
-        MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-        (LPTSTR)&lpMsgBuf,
-        0,
-        nullptr
-        );
+      FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM
+          | FORMAT_MESSAGE_IGNORE_INSERTS,
+      nullptr,
+      GetLastError(),
+      MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+      (LPTSTR)&lpMsgBuf,
+      0,
+      nullptr);
   std::string ret = lpMsgBuf;
   // Free the buffer.
-  LocalFree( lpMsgBuf );
+  LocalFree(lpMsgBuf);
   return ret;
 #else
   return std::string("");

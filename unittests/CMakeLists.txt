@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2011-2017, The DART development contributors
+# Copyright (c) 2011-2019, The DART development contributors
 # All rights reserved.
 #
 # The list of contributors can be found at:
@@ -31,8 +31,8 @@
 #
 
 # GoogleTest setup
-include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/unittests/gtest/include)
-include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/unittests/gtest)
+include_directories(BEFORE SYSTEM ${CMAKE_SOURCE_DIR}/unittests/gtest/include)
+include_directories(BEFORE SYSTEM ${CMAKE_SOURCE_DIR}/unittests/gtest)
 add_library(gtest STATIC gtest/src/gtest-all.cc)
 add_library(gtest_main STATIC gtest/src/gtest_main.cc)
 target_link_libraries(gtest_main gtest)
@@ -66,16 +66,9 @@ function(dart_add_test test_type target_name) # ARGN for source files
 
   add_executable(${target_name} ${sources})
   add_test(${target_name} ${target_name})
+  target_link_libraries(${target_name} dart gtest gtest_main)
 
-  if(MSVC)
-    target_link_libraries(${target_name}
-        dart
-        optimized gtest debug gtestd
-        optimized gtest_main debug gtest_maind
-    )
-  else()
-    target_link_libraries(${target_name} dart gtest gtest_main)
-  endif()
+  dart_format_add(${sources})
 
 endfunction()
 
@@ -100,8 +93,11 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 #   fixed even after further changes are made
 # - "unit": low level tests for one or few classes and functions to verify that
 #   they performs correctly as expected
-add_subdirectory(comprehensive)
-add_subdirectory(regression)
+if(NOT MSVC)
+  # Disabled due to limitied disk space in CI image
+  add_subdirectory(comprehensive)
+  add_subdirectory(regression)
+endif()
 add_subdirectory(unit)
 
 # Print tests
@@ -142,3 +138,5 @@ add_custom_target(
   tests
   DEPENDS ${comprehensive_tests} ${regression_tests} ${unit_tests}
 )
+
+dart_format_add(GTestUtils.hpp)

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2017, The DART development contributors
+ * Copyright (c) 2011-2019, The DART development contributors
  * All rights reserved.
  *
  * The list of contributors can be found at:
@@ -38,43 +38,62 @@
 #include <Eigen/Dense>
 
 #include "dart/common/Deprecated.hpp"
+#include "dart/common/Signal.hpp"
 #include "dart/common/Subject.hpp"
-#include "dart/math/Geometry.hpp"
+#include "dart/common/VersionCounter.hpp"
 #include "dart/dynamics/SmartPointer.hpp"
+#include "dart/math/Geometry.hpp"
 
 namespace dart {
 namespace dynamics {
 
-class Shape : public virtual common::Subject
+class Shape : public virtual common::Subject,
+              public virtual common::VersionCounter
 {
 public:
+  using VersionChangedSignal
+      = common::Signal<void(Shape* shape, std::size_t version)>;
 
   /// \deprecated Deprecated in 6.1. Please use getType() instead.
-  enum ShapeType {
+  enum ShapeType
+  {
     SPHERE,
     BOX,
     ELLIPSOID,
     CYLINDER,
     CAPSULE,
     CONE,
+    PYRAMID,
+    RECTANGULAR_PYRAMID,
     PLANE,
     MULTISPHERE,
     MESH,
     SOFT_MESH,
     LINE_SEGMENT,
+    HEIGHTMAP,
     UNSUPPORTED
   };
 
   /// DataVariance can be used by renderers to determine whether it should
   /// expect data for this shape to change during each update.
-  enum DataVariance {
-    STATIC=0,                   /// No data will ever change
-    DYNAMIC_TRANSFORM = 1 << 1, /// The relative transform of the Shape might change
-    DYNAMIC_PRIMITIVE = 1 << 2, /// The primitive properties (such as x/y/z scaling) of the shape might change
-    DYNAMIC_COLOR     = 1 << 3, /// The coloring or textures of the shape might change
-    DYNAMIC_VERTICES  = 1 << 4, /// Vertex positions of a mesh might change (this does not include adding or removing vertices) (this enum is not relevant for primitive shapes)
-    DYNAMIC_ELEMENTS  = 1 << 5, /// The number of elements and/or arrangement of elements might change (this includes adding and removing vertices)  (this enum is not relevant for primitive shapes)
-    DYNAMIC           = 0xFF    /// All data is subject to changing
+  enum DataVariance
+  {
+    STATIC = 0, /// No data will ever change
+    DYNAMIC_TRANSFORM
+    = 1 << 1, /// The relative transform of the Shape might change
+    DYNAMIC_PRIMITIVE = 1 << 2, /// The primitive properties (such as x/y/z
+                                /// scaling) of the shape might change
+    DYNAMIC_COLOR
+    = 1 << 3, /// The coloring or textures of the shape might change
+    DYNAMIC_VERTICES
+    = 1 << 4, /// Vertex positions of a mesh might change (this does not include
+              /// adding or removing vertices) (this enum is not relevant for
+              /// primitive shapes)
+    DYNAMIC_ELEMENTS
+    = 1 << 5, /// The number of elements and/or arrangement of elements might
+              /// change (this includes adding and removing vertices)  (this
+              /// enum is not relevant for primitive shapes)
+    DYNAMIC = 0xFF /// All data is subject to changing
   };
 
   /// \brief Constructor
@@ -111,20 +130,21 @@ public:
   ///        such as BoxShape, EllipsoidShape, CylinderShape, and MeshShape.
   const math::BoundingBox& getBoundingBox() const;
 
-  /// \brief
+  /// Computes the inertia.
   virtual Eigen::Matrix3d computeInertia(double mass) const = 0;
 
   Eigen::Matrix3d computeInertiaFromDensity(double density) const;
 
   Eigen::Matrix3d computeInertiaFromMass(double mass) const;
 
-  /// \brief Get volume of this shape.
-  ///        The volume will be automatically calculated by the sub-classes
-  ///        such as BoxShape, EllipsoidShape, CylinderShape, and MeshShape.
+  /// Returns volume of this shape.
+  ///
+  /// The volume will be automatically calculated by the sub-classes such as
+  /// BoxShape, EllipsoidShape, CylinderShape, and MeshShape.
   double getVolume() const;
 
   /// \brief
-  int getID() const;
+  std::size_t getID() const;
 
   /// \deprecated Deprecated in 6.1. Please use getType() instead.
   DART_DEPRECATED(6.1)
@@ -166,35 +186,53 @@ public:
   /// Notify that the color (rgba) of this shape has updated
   virtual void notifyColorUpdated(const Eigen::Vector4d& color);
 
-protected:
+  /// Increment the version of this Shape and notify its subscribers
+  std::size_t incrementVersion() override final;
 
-  /// \brief Update volume
-  virtual void updateVolume() = 0;
+protected:
+  /// Updates volume
+  virtual void updateVolume() const = 0;
+
+  /// Updates bounding box
+  virtual void updateBoundingBox() const = 0;
 
   /// \brief The bounding box (in the local coordinate frame) of the shape.
-  math::BoundingBox mBoundingBox;
+  mutable math::BoundingBox mBoundingBox;
 
-  /// \brief Volume enclosed by the geometry.
-  double mVolume;
+  /// Whether bounding box needs update
+  mutable bool mIsBoundingBoxDirty;
+
+  /// Volume enclosed by the geometry.
+  mutable double mVolume;
+
+  /// Whether volume needs update
+  mutable bool mIsVolumeDirty;
 
   /// \brief Unique id.
-  int mID;
+  const std::size_t mID;
 
   /// The DataVariance of this Shape
   unsigned int mVariance;
 
   /// \brief
-  static int mCounter;
+  static std::atomic_int mCounter;
 
   /// \deprecated Deprecated in 6.1. Please use getType() instead.
   /// Type of primitive shpae.
   ShapeType mType;
 
+private:
+  /// Triggered by incrementVersion()
+  VersionChangedSignal mVersionChangedSignal;
+
+public:
+  /// Use this to subscribe to version change signals
+  common::SlotRegister<VersionChangedSignal> onVersionChanged;
 };
 
-}  // namespace dynamics
-}  // namespace dart
+} // namespace dynamics
+} // namespace dart
 
 #include "dart/dynamics/detail/Shape.hpp"
 
-#endif  // DART_DYNAMICS_SHAPE_HPP_
+#endif // DART_DYNAMICS_SHAPE_HPP_

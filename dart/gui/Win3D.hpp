@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2017, The DART development contributors
+ * Copyright (c) 2011-2019, The DART development contributors
  * All rights reserved.
  *
  * The list of contributors can be found at:
@@ -33,45 +33,19 @@
 #ifndef DART_GUI_WIN3D_HPP_
 #define DART_GUI_WIN3D_HPP_
 
-#include <Eigen/Eigen>
+#pragma message(                                                               \
+    "This header is deprecated as of DART 6.6. "                               \
+    "Please use dart/gui/glut/Win3D.hpp instead.")
 
-#include "dart/gui/GlutWindow.hpp"
-#include "dart/gui/Trackball.hpp"
+#include "dart/common/Deprecated.hpp"
+#include "dart/gui/glut/Win3D.hpp"
 
 namespace dart {
 namespace gui {
 
-class Win3D : public GlutWindow {
-public:
-  Win3D();
+using Win3D DART_DEPRECATED(6.6) = ::dart::gui::glut::Win3D;
 
-  void initWindow(int _w, int _h, const char* _name) override;
-  void resize(int _w, int _h) override;
-  void render() override;
+} // namespace gui
+} // namespace dart
 
-  void keyboard(unsigned char _key, int _x, int _y) override;
-  void click(int _button, int _state, int _x, int _y) override;
-  void drag(int _x, int _y) override;
-
-  virtual void initGL();
-  virtual void initLights();
-
-  virtual void draw()=0;
-
-protected:
-  Trackball mTrackBall;
-  Eigen::Vector3d mTrans;
-  Eigen::Vector3d mEye;
-  Eigen::Vector3d mUp;
-  float mZoom;
-  float mPersp;
-
-  bool mRotate;
-  bool mTranslate;
-  bool mZooming;
-};
-
-}  // namespace gui
-}  // namespace dart
-
-#endif  // DART_GUI_WIN3D_HPP_
+#endif // DART_GUI_WIN3D_HPP_

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2017, The DART development contributors
+ * Copyright (c) 2011-2019, The DART development contributors
  * All rights reserved.
  *
  * The list of contributors can be found at:
@@ -38,8 +38,7 @@ namespace dart {
 namespace dynamics {
 
 //==============================================================================
-SphereShape::SphereShape(double radius)
-  : Shape(SPHERE)
+SphereShape::SphereShape(double radius) : Shape(SPHERE)
 {
   setRadius(radius);
 }
@@ -70,10 +69,10 @@ void SphereShape::setRadius(double radius)
 
   mRadius = radius;
 
-  mBoundingBox.setMin(Eigen::Vector3d::Constant(-radius));
-  mBoundingBox.setMax(Eigen::Vector3d::Constant(radius));
+  mIsBoundingBoxDirty = true;
+  mIsVolumeDirty = true;
 
-  updateVolume();
+  incrementVersion();
 }
 
 //==============================================================================
@@ -85,7 +84,7 @@ double SphereShape::getRadius() const
 //==============================================================================
 double SphereShape::computeVolume(double radius)
 {
-  return math::constantsd::pi() * 4.0 / 3.0 * std::pow(radius, 3) ;
+  return math::constantsd::pi() * 4.0 / 3.0 * std::pow(radius, 3);
 }
 
 //==============================================================================
@@ -107,10 +106,19 @@ Eigen::Matrix3d SphereShape::computeInertia(double mass) const
 }
 
 //==============================================================================
-void SphereShape::updateVolume()
+void SphereShape::updateBoundingBox() const
 {
-  mVolume = computeVolume(mRadius);
+  mBoundingBox.setMin(Eigen::Vector3d::Constant(-mRadius));
+  mBoundingBox.setMax(Eigen::Vector3d::Constant(mRadius));
+  mIsBoundingBoxDirty = false;
 }
 
-}  // namespace dynamics
-}  // namespace dart
+//==============================================================================
+void SphereShape::updateVolume() const
+{
+  mVolume = computeVolume(mRadius);
+  mIsVolumeDirty = false;
+}
+
+} // namespace dynamics
+} // namespace dart

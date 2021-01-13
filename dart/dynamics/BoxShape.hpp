@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2017, The DART development contributors
+ * Copyright (c) 2011-2019, The DART development contributors
  * All rights reserved.
  *
  * The list of contributors can be found at:
@@ -38,7 +38,8 @@
 namespace dart {
 namespace dynamics {
 
-class BoxShape : public Shape {
+class BoxShape : public Shape
+{
 public:
   /// \brief Constructor.
   explicit BoxShape(const Eigen::Vector3d& _size);
@@ -62,22 +63,25 @@ public:
   static double computeVolume(const Eigen::Vector3d& size);
 
   /// \brief Compute moments of inertia of a box
-  static Eigen::Matrix3d computeInertia(const Eigen::Vector3d& size,
-                                        double mass);
+  static Eigen::Matrix3d computeInertia(
+      const Eigen::Vector3d& size, double mass);
 
   // Documentation inherited.
   Eigen::Matrix3d computeInertia(double mass) const override;
 
 protected:
   // Documentation inherited.
-  void updateVolume() override;
+  void updateBoundingBox() const override;
+
+  // Documentation inherited.
+  void updateVolume() const override;
 
 private:
   /// \brief Side lengths of the box
   Eigen::Vector3d mSize;
 };
 
-}  // namespace dynamics
-}  // namespace dart
+} // namespace dynamics
+} // namespace dart
 
-#endif  // DART_DYNAMICS_BOXSHAPE_HPP_
+#endif // DART_DYNAMICS_BOXSHAPE_HPP_

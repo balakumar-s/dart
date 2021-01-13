@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2017, The DART development contributors
+ * Copyright (c) 2011-2019, The DART development contributors
  * All rights reserved.
  *
  * The list of contributors can be found at:
@@ -38,17 +38,15 @@ namespace dynamics {
 namespace detail {
 
 //==============================================================================
-VisualAspectProperties::VisualAspectProperties(const Eigen::Vector4d& color,
-                                             const bool hidden)
-  : mRGBA(color),
-    mHidden(hidden)
+VisualAspectProperties::VisualAspectProperties(
+    const Eigen::Vector4d& color, const bool hidden, const bool shadowed)
+  : mRGBA(color), mHidden(hidden), mShadowed(shadowed)
 {
   // Do nothing
 }
 
 //==============================================================================
-CollisionAspectProperties::CollisionAspectProperties(
-    const bool collidable)
+CollisionAspectProperties::CollisionAspectProperties(const bool collidable)
   : mCollidable(collidable)
 {
   // Do nothing
@@ -56,11 +54,34 @@ CollisionAspectProperties::CollisionAspectProperties(
 
 //==============================================================================
 DynamicsAspectProperties::DynamicsAspectProperties(
-    const double frictionCoeff,
-    const double restitutionCoeff)
-  :
-    mFrictionCoeff(frictionCoeff),
-    mRestitutionCoeff(restitutionCoeff)
+    const double frictionCoeff, const double restitutionCoeff)
+  : mFrictionCoeff(frictionCoeff),
+    mRestitutionCoeff(restitutionCoeff),
+    mSecondaryFrictionCoeff(frictionCoeff),
+    mPrimarySlipCompliance(-1.0),
+    mSecondarySlipCompliance(-1.0),
+    mFirstFrictionDirection(Eigen::Vector3d::Zero()),
+    mFirstFrictionDirectionFrame(nullptr)
+{
+  // Do nothing
+}
+
+//==============================================================================
+DynamicsAspectProperties::DynamicsAspectProperties(
+    const double primaryFrictionCoeff,
+    const double secondaryFrictionCoeff,
+    const double restitutionCoeff,
+    const double primarySlipCompliance,
+    const double secondarySlipCompliance,
+    const Eigen::Vector3d& firstFrictionDirection,
+    const Frame* firstFrictionDirectionFrame)
+  : mFrictionCoeff(primaryFrictionCoeff),
+    mRestitutionCoeff(restitutionCoeff),
+    mSecondaryFrictionCoeff(secondaryFrictionCoeff),
+    mPrimarySlipCompliance(primarySlipCompliance),
+    mSecondarySlipCompliance(secondarySlipCompliance),
+    mFirstFrictionDirection(firstFrictionDirection),
+    mFirstFrictionDirectionFrame(firstFrictionDirectionFrame)
 {
   // Do nothing
 }
@@ -159,8 +180,7 @@ bool VisualAspect::isHidden() const
 }
 
 //==============================================================================
-CollisionAspect::CollisionAspect(
-    const PropertiesData& properties)
+CollisionAspect::CollisionAspect(const PropertiesData& properties)
   : AspectImplementation(properties)
 {
   // Do nothing
@@ -173,11 +193,53 @@ bool CollisionAspect::isCollidable() const
 }
 
 //==============================================================================
-DynamicsAspect::DynamicsAspect(
-    const PropertiesData& properties)
+DynamicsAspect::DynamicsAspect(const PropertiesData& properties)
   : Base(properties)
 {
   // Do nothing
+}
+
+void DynamicsAspect::setFrictionCoeff(const double& value)
+{
+  mProperties.mFrictionCoeff = value;
+  mProperties.mSecondaryFrictionCoeff = value;
+}
+
+double DynamicsAspect::getFrictionCoeff() const
+{
+  return 0.5
+         * (mProperties.mFrictionCoeff + mProperties.mSecondaryFrictionCoeff);
+}
+
+void DynamicsAspect::setPrimaryFrictionCoeff(const double& value)
+{
+  mProperties.mFrictionCoeff = value;
+}
+
+const double& DynamicsAspect::getPrimaryFrictionCoeff() const
+{
+  return mProperties.mFrictionCoeff;
+}
+
+//==============================================================================
+void DynamicsAspect::setFirstFrictionDirectionFrame(const Frame* value)
+{
+  mProperties.mFirstFrictionDirectionFrame = value;
+}
+
+//==============================================================================
+const Frame* DynamicsAspect::getFirstFrictionDirectionFrame() const
+{
+  return mProperties.mFirstFrictionDirectionFrame;
+}
+
+//==============================================================================
+ShapeFrame::~ShapeFrame()
+{
+  // TODO(MXG): Why doesn't ScopedConnection seem to work as a member variable?
+  // If we could use a ScopedConnection for mConnectionForShapeVersionChange
+  // instead, then we wouldn't need to explicitly disconnect in this destructor.
+  mConnectionForShapeVersionChange.disconnect();
 }
 
 //==============================================================================
@@ -207,8 +269,22 @@ void ShapeFrame::setShape(const ShapePtr& shape)
   ShapePtr oldShape = ShapeFrame::mAspectProperties.mShape;
 
   ShapeFrame::mAspectProperties.mShape = shape;
+  incrementVersion();
 
-  mShapeUpdatedSignal.raise(this, oldShape, ShapeFrame::mAspectProperties.mShape);
+  mConnectionForShapeVersionChange.disconnect();
+
+  if (shape)
+  {
+    mConnectionForShapeVersionChange
+        = shape->onVersionChanged.connect([this](Shape* shape, std::size_t) {
+            assert(shape == this->ShapeFrame::mAspectProperties.mShape.get());
+            DART_UNUSED(shape);
+            this->incrementVersion();
+          });
+  }
+
+  mShapeUpdatedSignal.raise(
+      this, oldShape, ShapeFrame::mAspectProperties.mShape);
 }
 
 //==============================================================================
@@ -270,8 +346,7 @@ ShapeFrame::ShapeFrame(Frame* parent, const Properties& properties)
 }
 
 //==============================================================================
-ShapeFrame::ShapeFrame(Frame* parent,
-                       const ShapePtr& shape)
+ShapeFrame::ShapeFrame(Frame* parent, const ShapePtr& shape)
   : common::Composite(),
     Entity(ConstructFrame),
     Frame(parent),
@@ -295,4 +370,3 @@ ShapeFrame::ShapeFrame(const std::tuple<Frame*, Properties>& args)
 
 } // namespace dynamics
 } // namespace dart
-

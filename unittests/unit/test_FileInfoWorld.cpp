@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2017, The DART development contributors
+ * Copyright (c) 2011-2019, The DART development contributors
  * All rights reserved.
  *
  * The list of contributors can be found at:
@@ -30,24 +30,24 @@
  *   POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <iostream>
 #include <fstream>
+#include <iostream>
 #include <gtest/gtest.h>
 #include "TestHelpers.hpp"
 
-#include "dart/math/Geometry.hpp"
 #include "dart/dynamics/BodyNode.hpp"
 #include "dart/dynamics/RevoluteJoint.hpp"
 #include "dart/dynamics/Skeleton.hpp"
+#include "dart/math/Geometry.hpp"
 #include "dart/simulation/World.hpp"
-#include "dart/io/SkelParser.hpp"
-#include "dart/io/FileInfoWorld.hpp"
+#include "dart/utils/FileInfoWorld.hpp"
+#include "dart/utils/SkelParser.hpp"
 
 using namespace dart;
 using namespace math;
 using namespace dynamics;
 using namespace simulation;
-using namespace io;
+using namespace utils;
 
 //==============================================================================
 TEST(FileInfoWorld, Basic)
@@ -107,8 +107,10 @@ TEST(FileInfoWorld, Basic)
 
       for (std::size_t k = 0; k < dofs; ++k)
       {
-        EXPECT_NEAR(recording1->getGenCoord(i, j, k),
-                    recording2->getGenCoord(i, j, k), tol);
+        EXPECT_NEAR(
+            recording1->getGenCoord(i, j, k),
+            recording2->getGenCoord(i, j, k),
+            tol);
       }
     }
 
@@ -121,11 +123,15 @@ TEST(FileInfoWorld, Basic)
     {
       for (std::size_t k = 0; k < 3; ++k)
       {
-        EXPECT_NEAR(recording1->getContactForce(i, j)[k],
-                    recording2->getContactForce(i, j)[k], tol);
+        EXPECT_NEAR(
+            recording1->getContactForce(i, j)[k],
+            recording2->getContactForce(i, j)[k],
+            tol);
 
-        EXPECT_NEAR(recording1->getContactPoint(i, j)[k],
-                    recording2->getContactPoint(i, j)[k], tol);
+        EXPECT_NEAR(
+            recording1->getContactPoint(i, j)[k],
+            recording2->getContactPoint(i, j)[k],
+            tol);
       }
     }
   }

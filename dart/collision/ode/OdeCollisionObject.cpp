@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2017, The DART development contributors
+ * Copyright (c) 2011-2019, The DART development contributors
  * All rights reserved.
  *
  * The list of contributors can be found at:
@@ -34,23 +34,25 @@
 
 #include <ode/ode.h>
 
-#include "dart/dynamics/SphereShape.hpp"
-#include "dart/dynamics/BoxShape.hpp"
-#include "dart/dynamics/EllipsoidShape.hpp"
-#include "dart/dynamics/CylinderShape.hpp"
-#include "dart/dynamics/CapsuleShape.hpp"
-#include "dart/dynamics/ConeShape.hpp"
-#include "dart/dynamics/PlaneShape.hpp"
-#include "dart/dynamics/MultiSphereConvexHullShape.hpp"
-#include "dart/dynamics/MeshShape.hpp"
-#include "dart/dynamics/SoftMeshShape.hpp"
 #include "dart/collision/ode/OdeTypes.hpp"
 #include "dart/collision/ode/detail/OdeBox.hpp"
 #include "dart/collision/ode/detail/OdeCapsule.hpp"
 #include "dart/collision/ode/detail/OdeCylinder.hpp"
+#include "dart/collision/ode/detail/OdeHeightmap.hpp"
 #include "dart/collision/ode/detail/OdeMesh.hpp"
 #include "dart/collision/ode/detail/OdePlane.hpp"
 #include "dart/collision/ode/detail/OdeSphere.hpp"
+#include "dart/dynamics/BoxShape.hpp"
+#include "dart/dynamics/CapsuleShape.hpp"
+#include "dart/dynamics/ConeShape.hpp"
+#include "dart/dynamics/CylinderShape.hpp"
+#include "dart/dynamics/EllipsoidShape.hpp"
+#include "dart/dynamics/HeightmapShape.hpp"
+#include "dart/dynamics/MeshShape.hpp"
+#include "dart/dynamics/MultiSphereConvexHullShape.hpp"
+#include "dart/dynamics/PlaneShape.hpp"
+#include "dart/dynamics/SoftMeshShape.hpp"
+#include "dart/dynamics/SphereShape.hpp"
 
 namespace dart {
 namespace collision {
@@ -74,7 +76,9 @@ OdeCollisionObject::OdeCollisionObject(
     mOdeGeom(nullptr),
     mBodyId(nullptr)
 {
-  // Create detail::OdeGeom according to the shape type
+  // Create detail::OdeGeom according to the shape type.
+  // The geometry may have a transform assigned to it which is to
+  // be treated as relative transform to the main body.
   mOdeGeom.reset(createOdeGeom(this, shapeFrame));
 
   const auto geomId = mOdeGeom->getOdeGeomId();
@@ -82,9 +86,46 @@ OdeCollisionObject::OdeCollisionObject(
 
   if (mOdeGeom->isPlaceable())
   {
+    // if the geometry already has a pose, it is to be considered
+    // a constant relative pose to the body.
+    // Get the geometry pose to ensure this offset is set correctly.
+    // Assigning a body to the geometry will overwrite the geometry
+    // pose, so back it up first.
+    dQuaternion geomRelRot;
+    dGeomGetQuaternion(geomId, geomRelRot);
+    const dReal* geomRelPos = dGeomGetPosition(geomId);
+    assert(geomRelPos);
+
+    // create the body
     mBodyId = dBodyCreate(collisionDetector->getOdeWorldId());
+    // attach geometry to body. This will set the geometry pose to identity.
     dGeomSetBody(geomId, mBodyId);
+
+    // set the offset
+    dGeomSetOffsetPosition(geomId, geomRelPos[0], geomRelPos[1], geomRelPos[2]);
+    dGeomSetOffsetQuaternion(geomId, geomRelRot);
   }
+}
+
+//==============================================================================
+OdeCollisionObject& OdeCollisionObject::operator=(OdeCollisionObject&& other)
+{
+  // This should only be used for refreshing the collision objects, so the
+  // detector and the shape frame should never need to change
+  assert(mCollisionDetector == other.mCollisionDetector);
+  assert(mShapeFrame == other.mShapeFrame);
+
+  // We should never be assigning a collision object to itself
+  assert(this != &other);
+
+  // There should never be duplicate body IDs or geometries
+  assert(!mBodyId || mBodyId != other.mBodyId);
+  assert(mOdeGeom.get() != other.mOdeGeom.get());
+
+  mOdeGeom = std::move(other.mOdeGeom);
+  std::swap(mBodyId, other.mBodyId);
+
+  return *this;
 }
 
 //==============================================================================
@@ -129,15 +170,17 @@ dGeomID OdeCollisionObject::getOdeGeomId() const
 detail::OdeGeom* createOdeGeom(
     OdeCollisionObject* collObj, const dynamics::ShapeFrame* shapeFrame)
 {
-  using dynamics::Shape;
-  using dynamics::SphereShape;
   using dynamics::BoxShape;
-  using dynamics::EllipsoidShape;
   using dynamics::CapsuleShape;
   using dynamics::CylinderShape;
-  using dynamics::PlaneShape;
+  using dynamics::EllipsoidShape;
+  using dynamics::HeightmapShaped;
+  using dynamics::HeightmapShapef;
   using dynamics::MeshShape;
+  using dynamics::PlaneShape;
+  using dynamics::Shape;
   using dynamics::SoftMeshShape;
+  using dynamics::SphereShape;
 
   detail::OdeGeom* geom = nullptr;
   const auto shape = shapeFrame->getShape().get();
@@ -188,6 +231,16 @@ detail::OdeGeom* createOdeGeom(
 
     geom = new detail::OdeMesh(collObj, aiScene, scale);
   }
+  else if (shape->is<HeightmapShapef>())
+  {
+    auto heightMap = static_cast<const HeightmapShapef*>(shape);
+    geom = new detail::OdeHeightmapf(collObj, heightMap);
+  }
+  else if (shape->is<HeightmapShaped>())
+  {
+    auto heightMap = static_cast<const HeightmapShaped*>(shape);
+    geom = new detail::OdeHeightmapd(collObj, heightMap);
+  }
   else
   {
     dterr << "[OdeCollisionDetector] Attempting to create an unsupported shape "
@@ -206,5 +259,5 @@ detail::OdeGeom* createOdeGeom(
   return geom;
 }
 
-}  // namespace collision
-}  // namespace dart
+} // namespace collision
+} // namespace dart

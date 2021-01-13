@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2017, The DART development contributors
+ * Copyright (c) 2011-2019, The DART development contributors
  * All rights reserved.
  *
  * The list of contributors can be found at:
@@ -46,7 +46,6 @@ class BalanceConstraint : public optimizer::Function,
                           public dynamics::HierarchicalIK::Function
 {
 public:
-
   /// The ErrorMethod_t determines whether the error should be computed based on
   /// the center of mass's distance from the centroid of the support polygon
   /// (FROM_CENTROID) or the COM's distance from the edge of the support polygon
@@ -85,9 +84,10 @@ public:
   };
 
   /// Constructor
-  BalanceConstraint(const std::shared_ptr<dynamics::HierarchicalIK>& _ik,
-                    BalanceMethod_t _balanceMethod = SHIFT_SUPPORT,
-                    ErrorMethod_t _errorMethod = FROM_CENTROID);
+  BalanceConstraint(
+      const std::shared_ptr<dynamics::HierarchicalIK>& _ik,
+      BalanceMethod_t _balanceMethod = SHIFT_SUPPORT,
+      ErrorMethod_t _errorMethod = FROM_CENTROID);
 
   /// Virtual destructor
   virtual ~BalanceConstraint() = default;
@@ -97,11 +97,11 @@ public:
       const std::shared_ptr<dynamics::HierarchicalIK>& _newIK) const override;
 
   // Documentation inherited
-  double eval(const Eigen::VectorXd& _x) const override;
+  double eval(const Eigen::VectorXd& _x) override;
 
   // Documentation inherited
-  void evalGradient(const Eigen::VectorXd& _x,
-                    Eigen::Map<Eigen::VectorXd> _grad) const override;
+  void evalGradient(
+      const Eigen::VectorXd& _x, Eigen::Map<Eigen::VectorXd> _grad) override;
 
   /// Set the method that this constraint function will use to compute the
   /// error. See the ErrorMethod_t docs for more information.
@@ -140,11 +140,9 @@ public:
   void clearCaches();
 
 protected:
-
   /// Convert the gradient that gets generated via Jacobian methods into a
   /// gradient that can be used by a GradientDescentSolver.
-  void convertJacobianMethodOutputToGradient(
-      Eigen::Map<Eigen::VectorXd>& grad) const;
+  void convertJacobianMethodOutputToGradient(Eigen::Map<Eigen::VectorXd>& grad);
 
   /// Pointer to the hierarchical IK that owns this Function. Note that this
   /// Function does not work correctly without a HierarchicalIK.
@@ -164,11 +162,11 @@ protected:
 
   /// The indices of the supporting end effectors that are closest to the center
   /// of mass. These are used when using FROM_EDGE
-  mutable std::size_t mClosestEndEffector[2];
+  std::size_t mClosestEndEffector[2];
 
   /// The error vector points away from the direction that the center of mass
   /// should move in order to reduce the balance error
-  mutable Eigen::Vector3d mLastError;
+  Eigen::Vector3d mLastError;
 
   /// The last computed location of the center of mass
   Eigen::Vector3d mLastCOM;
@@ -178,24 +176,24 @@ protected:
 
   /// Cache for the center of mass Jacobian so that the memory space does not
   /// need to be reallocated each loop
-  mutable math::LinearJacobian mComJacCache;
+  math::LinearJacobian mComJacCache;
 
   /// Cache for the end effector Jacobians so the space does not need to be
   /// reallocated each loop
-  mutable math::LinearJacobian mEEJacCache;
+  math::LinearJacobian mEEJacCache;
 
   /// Cache for the SVD
-  mutable Eigen::JacobiSVD<math::LinearJacobian> mSVDCache;
+  Eigen::JacobiSVD<math::LinearJacobian> mSVDCache;
 
   /// Cache for the full null space
-  mutable Eigen::MatrixXd mNullSpaceCache;
+  Eigen::MatrixXd mNullSpaceCache;
 
   /// Cache for an individual null space
-  mutable Eigen::MatrixXd mPartialNullSpaceCache;
+  Eigen::MatrixXd mPartialNullSpaceCache;
 
   /// Cache used by convertJacobianMethodOutputToGradient to avoid reallocating
   /// this vector on each iteration.
-  mutable Eigen::VectorXd mInitialPositionsCache;
+  Eigen::VectorXd mInitialPositionsCache;
 };
 
 } // namespace constraint

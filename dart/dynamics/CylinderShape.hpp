@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2017, The DART development contributors
+ * Copyright (c) 2011-2019, The DART development contributors
  * All rights reserved.
  *
  * The list of contributors can be found at:
@@ -38,7 +38,8 @@
 namespace dart {
 namespace dynamics {
 
-class CylinderShape : public Shape {
+class CylinderShape : public Shape
+{
 public:
   /// \brief Constructor.
   CylinderShape(double _radius, double _height);
@@ -73,12 +74,12 @@ public:
 
 protected:
   // Documentation inherited.
-  void updateVolume() override;
+  void updateBoundingBox() const override;
+
+  // Documentation inherited.
+  void updateVolume() const override;
 
 private:
-  /// \brief
-  void _updateBoundingBoxDim();
-
   /// \brief
   double mRadius;
 
@@ -86,7 +87,7 @@ private:
   double mHeight;
 };
 
-}  // namespace dynamics
-}  // namespace dart
+} // namespace dynamics
+} // namespace dart
 
-#endif  // DART_DYNAMICS_CYLINDERSHAPE_HPP_
+#endif // DART_DYNAMICS_CYLINDERSHAPE_HPP_

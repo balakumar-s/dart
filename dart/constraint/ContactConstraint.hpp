@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2017, The DART development contributors
+ * Copyright (c) 2011-2019, The DART development contributors
  * All rights reserved.
  *
  * The list of contributors can be found at:
@@ -33,17 +33,16 @@
 #ifndef DART_CONSTRAINT_CONTACTCONSTRAINT_HPP_
 #define DART_CONSTRAINT_CONTACTCONSTRAINT_HPP_
 
-#include "dart/constraint/ConstraintBase.hpp"
-
-#include "dart/math/MathTypes.hpp"
 #include "dart/collision/CollisionDetector.hpp"
+#include "dart/constraint/ConstraintBase.hpp"
+#include "dart/math/MathTypes.hpp"
 
 namespace dart {
 
 namespace dynamics {
 class BodyNode;
 class Skeleton;
-}  // namespace dynamics
+} // namespace dynamics
 
 namespace constraint {
 
@@ -52,41 +51,47 @@ class ContactConstraint : public ConstraintBase
 {
 public:
   /// Constructor
-  ContactConstraint(collision::Contact& _contact, double _timeStep);
+  ContactConstraint(collision::Contact& contact, double timeStep);
 
   /// Destructor
-  virtual ~ContactConstraint();
+  ~ContactConstraint() override = default;
+
+  // Documentation inherited
+  const std::string& getType() const override;
+
+  /// Returns constraint type for this class.
+  static const std::string& getStaticType();
 
   //----------------------------------------------------------------------------
   // Property settings
   //----------------------------------------------------------------------------
 
   /// Set global error reduction parameter
-  static void setErrorAllowance(double _allowance);
+  static void setErrorAllowance(double allowance);
 
   /// Get global error reduction parameter
   static double getErrorAllowance();
 
   /// Set global error reduction parameter
-  static void setErrorReductionParameter(double _erp);
+  static void setErrorReductionParameter(double erp);
 
   /// Get global error reduction parameter
   static double getErrorReductionParameter();
 
   /// Set global error reduction parameter
-  static void setMaxErrorReductionVelocity(double _erv);
+  static void setMaxErrorReductionVelocity(double erv);
 
   /// Get global error reduction parameter
   static double getMaxErrorReductionVelocity();
 
   /// Set global constraint force mixing parameter
-  static void setConstraintForceMixing(double _cfm);
+  static void setConstraintForceMixing(double cfm);
 
   /// Get global constraint force mixing parameter
   static double getConstraintForceMixing();
 
   /// Set first frictional direction
-  void setFrictionDirection(const Eigen::Vector3d& _dir);
+  void setFrictionDirection(const Eigen::Vector3d& dir);
 
   /// Get first frictional direction
   const Eigen::Vector3d& getFrictionDirection1() const;
@@ -107,13 +112,13 @@ protected:
   void update() override;
 
   // Documentation inherited
-  void getInformation(ConstraintInfo* _info) override;
+  void getInformation(ConstraintInfo* info) override;
 
   // Documentation inherited
-  void applyUnitImpulse(std::size_t _idx) override;
+  void applyUnitImpulse(std::size_t index) override;
 
   // Documentation inherited
-  void getVelocityChange(double* _vel, bool _withCfm) override;
+  void getVelocityChange(double* vel, bool withCfm) override;
 
   // Documentation inherited
   void excite() override;
@@ -122,7 +127,7 @@ protected:
   void unexcite() override;
 
   // Documentation inherited
-  void applyImpulse(double* _lambda) override;
+  void applyImpulse(double* lambda) override;
 
   // Documentation inherited
   dynamics::SkeletonPtr getRootSkeleton() const override;
@@ -133,47 +138,94 @@ protected:
   // Documentation inherited
   bool isActive() const override;
 
+  static double computeFrictionCoefficient(
+      const dynamics::ShapeNode* shapeNode);
+  static double computePrimaryFrictionCoefficient(
+      const dynamics::ShapeNode* shapeNode);
+  static double computeSecondaryFrictionCoefficient(
+      const dynamics::ShapeNode* shapeNode);
+  static double computePrimarySlipCompliance(
+      const dynamics::ShapeNode* shapeNode);
+  static double computeSecondarySlipCompliance(
+      const dynamics::ShapeNode* shapeNode);
+  static Eigen::Vector3d computeWorldFirstFrictionDir(
+      const dynamics::ShapeNode* shapenode);
+  static double computeRestitutionCoefficient(
+      const dynamics::ShapeNode* shapeNode);
+
 private:
   using TangentBasisMatrix = Eigen::Matrix<double, 3, 2>;
 
   /// Get change in relative velocity at contact point due to external impulse
-  /// \param[out] _relVel Change in relative velocity at contact point of the
-  ///                     two colliding bodies
-  void getRelVelocity(double* _relVel);
+  /// \param[out] relVel Change in relative velocity at contact point of the
+  /// two colliding bodies.
+  void getRelVelocity(double* relVel);
 
   ///
   void updateFirstFrictionalDirection();
 
   ///
-  TangentBasisMatrix getTangentBasisMatrixODE(const Eigen::Vector3d& _n);
+  TangentBasisMatrix getTangentBasisMatrixODE(const Eigen::Vector3d& n);
+
+  // The following functions for getting and setting slip compliance and
+  // accessing the contact object are meant to be used by ConstraintSolver to
+  // update the slip compliances based on the number of contacts between the
+  // collision objects.
+  //
+  /// Get primary slip compliance
+  double getPrimarySlipCompliance() const;
+
+  /// Set primary slip compliance
+  void setPrimarySlipCompliance(double slip);
+
+  /// Get secondary slip compliance
+  double getSecondarySlipCompliance() const;
+
+  /// Set secondary slip compliance
+  void setSecondarySlipCompliance(double slip);
+
+  /// Get contact object associated witht this constraint
+  const collision::Contact& getContact() const;
 
 private:
   /// Time step
   double mTimeStep;
 
   /// Fircst body node
-  dynamics::BodyNode* mBodyNode1;
+  dynamics::BodyNode* mBodyNodeA;
 
   /// Second body node
-  dynamics::BodyNode* mBodyNode2;
+  dynamics::BodyNode* mBodyNodeB;
 
-  /// Contacts between mBodyNode1 and mBodyNode2
-  std::vector<collision::Contact*> mContacts;
+  /// Contact between mBodyNode1 and mBodyNode2
+  collision::Contact& mContact;
 
   /// First frictional direction
   Eigen::Vector3d mFirstFrictionalDirection;
 
-  /// Coefficient of Friction
-  double mFrictionCoeff;
+  /// Primary Coefficient of Friction
+  double mPrimaryFrictionCoeff;
+
+  /// Primary Coefficient of Friction
+  double mSecondaryFrictionCoeff;
+
+  /// Primary Coefficient of Slip Compliance
+  double mPrimarySlipCompliance;
+
+  /// Secondary Coefficient of Slip Compliance
+  double mSecondarySlipCompliance;
 
   /// Coefficient of restitution
   double mRestitutionCoeff;
 
+  /// Whether this contact is self-collision.
+  bool mIsSelfCollision;
+
   /// Local body jacobians for mBodyNode1
-  common::aligned_vector<Eigen::Vector6d> mJacobians1;
+  Eigen::Matrix<double, 6, Eigen::Dynamic> mSpatialNormalA;
 
   /// Local body jacobians for mBodyNode2
-  common::aligned_vector<Eigen::Vector6d> mJacobians2;
+  Eigen::Matrix<double, 6, Eigen::Dynamic> mSpatialNormalB;
 
   ///
   bool mIsFrictionOn;
@@ -202,9 +254,9 @@ private:
   /// \sa http://www.ode.org/ode-latest-userguide.html#sec_3_8_0
   static double mConstraintForceMixing;
 };
+// TODO(JS): Create SelfContactConstraint.
 
 } // namespace constraint
 } // namespace dart
 
-#endif  // DART_CONSTRAINT_CONTACTCONSTRAINT_HPP_
-
+#endif // DART_CONSTRAINT_CONTACTCONSTRAINT_HPP_

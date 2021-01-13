@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2017, The DART development contributors
+ * Copyright (c) 2011-2019, The DART development contributors
  * All rights reserved.
  *
  * The list of contributors can be found at:
@@ -43,7 +43,6 @@ namespace dynamics {
 class ConeShape : public Shape
 {
 public:
-
   /// Constructor.
   /// \param[in] radius Radius of the circular base.
   /// \param[in] height Lateral height of the cone.
@@ -85,24 +84,21 @@ public:
   Eigen::Matrix3d computeInertia(double mass) const override;
 
 protected:
+  // Documentation inherited.
+  void updateBoundingBox() const override;
 
   // Documentation inherited.
-  void updateVolume() override;
+  void updateVolume() const override;
 
 private:
-
-  /// Update bounding box (in the local coordinate frame) of the shape.
-  void updateBoundingBoxDim();
-
   /// Radius of the circular base.
   double mRadius;
 
   /// Height of the cylindrical part.
   double mHeight;
-
 };
 
-}  // namespace dynamics
-}  // namespace dart
+} // namespace dynamics
+} // namespace dart
 
-#endif  // DART_DYNAMICS_CONESHAPE_HPP_
+#endif // DART_DYNAMICS_CONESHAPE_HPP_

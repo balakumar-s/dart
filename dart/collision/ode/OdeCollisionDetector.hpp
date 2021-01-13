@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2017, The DART development contributors
+ * Copyright (c) 2011-2019, The DART development contributors
  * All rights reserved.
  *
  * The list of contributors can be found at:
@@ -52,6 +52,8 @@ namespace collision {
 class OdeCollisionDetector : public CollisionDetector
 {
 public:
+  using CollisionDetector::createCollisionGroup;
+
   friend class OdeCollisionObject;
 
   static std::shared_ptr<OdeCollisionDetector> create();
@@ -60,7 +62,8 @@ public:
   virtual ~OdeCollisionDetector();
 
   // Documentation inherited
-  std::shared_ptr<CollisionDetector> cloneWithoutCollisionObjects() override;
+  std::shared_ptr<CollisionDetector> cloneWithoutCollisionObjects()
+      const override;
 
   // Documentation inherited
   const std::string& getType() const override;
@@ -105,6 +108,9 @@ protected:
   std::unique_ptr<CollisionObject> createCollisionObject(
       const dynamics::ShapeFrame* shapeFrame) override;
 
+  // Documentation inherited
+  void refreshCollisionObject(CollisionObject* object) override;
+
   dWorldID getOdeWorldId() const;
 
 protected:
@@ -119,7 +125,7 @@ private:
   static Registrar<OdeCollisionDetector> mRegistrar;
 };
 
-}  // namespace collision
-}  // namespace dart
+} // namespace collision
+} // namespace dart
 
-#endif  // DART_COLLISION_ODE_ODECOLLISIONDETECTOR_HPP_
+#endif // DART_COLLISION_ODE_ODECOLLISIONDETECTOR_HPP_

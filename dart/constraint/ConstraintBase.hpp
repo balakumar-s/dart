@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2017, The DART development contributors
+ * Copyright (c) 2011-2019, The DART development contributors
  * All rights reserved.
  *
  * The list of contributors can be found at:
@@ -41,7 +41,7 @@ namespace dart {
 
 namespace dynamics {
 class Skeleton;
-}  // namespace dynamics
+} // namespace dynamics
 
 namespace constraint {
 
@@ -74,6 +74,9 @@ struct ConstraintInfo
 class ConstraintBase
 {
 public:
+  /// Returns a string representing the constraint type
+  virtual const std::string& getType() const;
+
   /// Return dimesion of this constranit
   std::size_t getDimension() const;
 
@@ -81,13 +84,13 @@ public:
   virtual void update() = 0;
 
   /// Fill LCP variables
-  virtual void getInformation(ConstraintInfo* _info) = 0;
+  virtual void getInformation(ConstraintInfo* info) = 0;
 
   /// Apply unit impulse to constraint space
-  virtual void applyUnitImpulse(std::size_t _index) = 0;
+  virtual void applyUnitImpulse(std::size_t index) = 0;
 
   /// Get velocity change due to the uint impulse
-  virtual void getVelocityChange(double* _vel, bool _withCfm) = 0;
+  virtual void getVelocityChange(double* vel, bool withCfm) = 0;
 
   /// Excite the constraint
   virtual void excite() = 0;
@@ -96,7 +99,7 @@ public:
   virtual void unexcite() = 0;
 
   /// Apply computed constraint impulse to constrained skeletons
-  virtual void applyImpulse(double* _lambda) = 0;
+  virtual void applyImpulse(double* lambda) = 0;
 
   /// Return true if this constraint is active
   virtual bool isActive() const = 0;
@@ -108,10 +111,10 @@ public:
   virtual void uniteSkeletons();
 
   ///
-  static dynamics::SkeletonPtr compressPath(dynamics::SkeletonPtr _skeleton);
+  static dynamics::SkeletonPtr compressPath(dynamics::SkeletonPtr skeleton);
 
   ///
-  static dynamics::SkeletonPtr getRootSkeleton(dynamics::SkeletonPtr _skeleton);
+  static dynamics::SkeletonPtr getRootSkeleton(dynamics::SkeletonPtr skeleton);
 
   //----------------------------------------------------------------------------
   // Friendship
@@ -120,12 +123,12 @@ public:
   friend class ConstraintSolver;
   friend class ConstrainedGroup;
 
+  /// Destructor
+  virtual ~ConstraintBase();
+
 protected:
   /// Default contructor
   ConstraintBase();
-
-  /// Destructor
-  virtual ~ConstraintBase();
 
 protected:
   /// Dimension of constraint
@@ -135,5 +138,4 @@ protected:
 } // namespace constraint
 } // namespace dart
 
-#endif  // DART_CONSTRAINT_CONSTRAINTBASE_HPP_
-
+#endif // DART_CONSTRAINT_CONSTRAINTBASE_HPP_

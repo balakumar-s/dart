@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2017, The DART development contributors
+ * Copyright (c) 2011-2019, The DART development contributors
  * All rights reserved.
  *
  * The list of contributors can be found at:
@@ -33,9 +33,10 @@
 #ifndef DART_GUI_OSG_WORLDNODE_HPP_
 #define DART_GUI_OSG_WORLDNODE_HPP_
 
-#include <osg/Group>
-#include <unordered_map>
 #include <memory>
+#include <unordered_map>
+#include <osg/Group>
+#include <osgShadow/ShadowTechnique>
 
 #include "dart/gui/osg/Viewer.hpp"
 
@@ -63,14 +64,16 @@ class Viewer;
 class WorldNode : public ::osg::Group
 {
 public:
-
   friend class Viewer;
 
   /// Default constructor
-  explicit WorldNode(std::shared_ptr<dart::simulation::World> _world = nullptr);
+  /// Shadows are disabled by default
+  explicit WorldNode(
+      std::shared_ptr<dart::simulation::World> world = nullptr,
+      ::osg::ref_ptr<osgShadow::ShadowTechnique> shadowTechnique = nullptr);
 
   /// Set the World that this WorldNode is associated with
-  void setWorld(std::shared_ptr<dart::simulation::World> _newWorld);
+  void setWorld(std::shared_ptr<dart::simulation::World> newWorld);
 
   /// Get the World that this WorldNode is associated with
   std::shared_ptr<dart::simulation::World> getWorld() const;
@@ -119,21 +122,37 @@ public:
 
   /// Pass in true to take steps between render cycles; pass in false to turn
   /// off steps between render cycles.
-  void simulate(bool _on);
+  void simulate(bool on);
 
   /// Set the number of steps to take between each render cycle (only if the
   /// simulation is not paused)
-  void setNumStepsPerCycle(std::size_t _steps);
+  void setNumStepsPerCycle(std::size_t steps);
 
   /// Get the number of steps that will be taken between each render cycle (only
   /// if the simulation is not paused)
   std::size_t getNumStepsPerCycle() const;
 
-protected:
+  /// Get whether the WorldNode is casting shadows
+  bool isShadowed() const;
+
+  /// Set the ShadowTechnique
+  /// If you wish to disable shadows, pass a nullptr
+  void setShadowTechnique(
+      ::osg::ref_ptr<osgShadow::ShadowTechnique> shadowTechnique = nullptr);
+
+  /// Get the current ShadowTechnique
+  /// nullptr is there are no shadows
+  ::osg::ref_ptr<osgShadow::ShadowTechnique> getShadowTechnique() const;
+
+  /// Helper function to create a default ShadowTechnique given a Viewer
+  /// the default ShadowTechnique is ShadowMap
+  static ::osg::ref_ptr<osgShadow::ShadowTechnique>
+  createDefaultShadowTechnique(const Viewer* viewer);
 
   /// Destructor
   virtual ~WorldNode();
 
+protected:
   /// Called when this world gets added to an dart::gui::osg::Viewer. Override
   /// this function to customize the way your WorldNode starts up in an
   /// dart::gui::osg::Viewer. Default behavior does nothing.
@@ -156,7 +175,8 @@ protected:
 
   void refreshShapeFrameNode(dart::dynamics::Frame* frame);
 
-  using NodeMap = std::unordered_map<dart::dynamics::Frame*, ShapeFrameNode*>;
+  using NodeMap = std::
+      unordered_map<dart::dynamics::Frame*, ::osg::ref_ptr<ShapeFrameNode>>;
 
   /// Map from Frame pointers to FrameNode pointers
   NodeMap mFrameToNode;
@@ -173,6 +193,14 @@ protected:
   /// Viewer that this WorldNode is inside of
   Viewer* mViewer;
 
+  /// OSG group for non-shadowed objects
+  ::osg::ref_ptr<::osg::Group> mNormalGroup;
+
+  /// OSG group for shadowed objects
+  ::osg::ref_ptr<::osgShadow::ShadowedScene> mShadowedGroup;
+
+  /// Whether the shadows are enabled
+  bool mShadowed;
 };
 
 } // namespace osg

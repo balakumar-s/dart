@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2017, The DART development contributors
+ * Copyright (c) 2011-2019, The DART development contributors
  * All rights reserved.
  *
  * The list of contributors can be found at:
@@ -40,11 +40,11 @@
 namespace dart {
 namespace dynamics {
 
-/// MultiSphereConvexHullShape represents the convex hull of a collection of spheres.
+/// MultiSphereConvexHullShape represents the convex hull of a collection of
+/// spheres.
 class MultiSphereConvexHullShape : public Shape
 {
 public:
-
   using Sphere = std::pair<double, Eigen::Vector3d>;
   using Spheres = std::vector<Sphere>;
 
@@ -85,27 +85,24 @@ public:
   Eigen::Matrix3d computeInertia(double mass) const override;
 
 protected:
+  // Documentation inherited.
+  void updateBoundingBox() const override;
 
   /// Update the volume of this MultiSphereConvexHullShape.
   ///
   /// \note The result volume is an approximated volumen that is the volume of
   /// the axis-alinged bounding box of this MultiSphereConvexHullShape.
-  void updateVolume() override;
+  void updateVolume() const override;
 
 private:
-
-  /// Update bounding box (in the local coordinate frame) of the shape.
-  void updateBoundingBoxDim();
-
   /// Spheres
   Spheres mSpheres;
-
 };
 
 DART_DEPRECATED(6.2)
 typedef MultiSphereConvexHullShape MultiSphereShape;
 
-}  // namespace dynamics
-}  // namespace dart
+} // namespace dynamics
+} // namespace dart
 
-#endif  // DART_DYNAMICS_MULTISPHERECONVEXHULLSHAPE_HPP_
+#endif // DART_DYNAMICS_MULTISPHERECONVEXHULLSHAPE_HPP_

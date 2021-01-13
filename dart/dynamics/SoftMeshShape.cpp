@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2017, The DART development contributors
+ * Copyright (c) 2011-2019, The DART development contributors
  * All rights reserved.
  *
  * The list of contributors can be found at:
@@ -41,9 +41,7 @@ namespace dart {
 namespace dynamics {
 
 SoftMeshShape::SoftMeshShape(SoftBodyNode* _softBodyNode)
-  : Shape(SOFT_MESH),
-    mSoftBodyNode(_softBodyNode),
-    mAssimpMesh(nullptr)
+  : Shape(SOFT_MESH), mSoftBodyNode(_softBodyNode), mAssimpMesh(nullptr)
 {
   assert(_softBodyNode != nullptr);
   // Build mesh here using soft body node
@@ -88,32 +86,41 @@ Eigen::Matrix3d SoftMeshShape::computeInertia(double /*mass*/) const
   return Eigen::Matrix3d::Zero();
 }
 
-void SoftMeshShape::updateVolume()
+//==============================================================================
+void SoftMeshShape::updateBoundingBox() const
 {
   // TODO(JS): Not implemented.
+  mIsBoundingBoxDirty = false;
+}
+
+//==============================================================================
+void SoftMeshShape::updateVolume() const
+{
+  // TODO(JS): Not implemented.
+  mIsVolumeDirty = false;
 }
 
 void SoftMeshShape::_buildMesh()
 {
   // Get number of vertices and faces from soft body node
   int nVertices = mSoftBodyNode->getNumPointMasses();
-  int nFaces    = mSoftBodyNode->getNumFaces();
+  int nFaces = mSoftBodyNode->getNumFaces();
 
   // Create new aiMesh
-  mAssimpMesh = common::make_unique<aiMesh>();
+  mAssimpMesh = std::make_unique<aiMesh>();
 
   // Set vertices and normals
   mAssimpMesh->mNumVertices = nVertices;
-  mAssimpMesh->mVertices    = new aiVector3D[nVertices];
-  mAssimpMesh->mNormals     = new aiVector3D[nVertices];
+  mAssimpMesh->mVertices = new aiVector3D[nVertices];
+  mAssimpMesh->mNormals = new aiVector3D[nVertices];
   aiVector3D itAIVector3d;
   for (int i = 0; i < nVertices; ++i)
   {
-    PointMass* itPointMass        = mSoftBodyNode->getPointMass(i);
+    PointMass* itPointMass = mSoftBodyNode->getPointMass(i);
     const Eigen::Vector3d& vertex = itPointMass->getRestingPosition();
     itAIVector3d.Set(vertex[0], vertex[1], vertex[2]);
     mAssimpMesh->mVertices[i] = itAIVector3d;
-    mAssimpMesh->mNormals[i]  = itAIVector3d;
+    mAssimpMesh->mNormals[i] = itAIVector3d;
   }
 
   // Set faces
@@ -124,7 +131,7 @@ void SoftMeshShape::_buildMesh()
     Eigen::Vector3i itFace = mSoftBodyNode->getFace(i);
     aiFace* itAIFace = &mAssimpMesh->mFaces[i];
     itAIFace->mNumIndices = 3;
-    itAIFace->mIndices    = new unsigned int[3];
+    itAIFace->mIndices = new unsigned int[3];
     itAIFace->mIndices[0] = itFace[0];
     itAIFace->mIndices[1] = itFace[1];
     itAIFace->mIndices[2] = itFace[2];
@@ -138,12 +145,12 @@ void SoftMeshShape::update()
   aiVector3D itAIVector3d;
   for (std::size_t i = 0; i < nVertices; ++i)
   {
-    PointMass* itPointMass        = mSoftBodyNode->getPointMass(i);
+    PointMass* itPointMass = mSoftBodyNode->getPointMass(i);
     const Eigen::Vector3d& vertex = itPointMass->getLocalPosition();
     itAIVector3d.Set(vertex[0], vertex[1], vertex[2]);
     mAssimpMesh->mVertices[i] = itAIVector3d;
   }
 }
 
-}  // namespace dynamics
-}  // namespace dart
+} // namespace dynamics
+} // namespace dart

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2017, The DART development contributors
+ * Copyright (c) 2011-2019, The DART development contributors
  * All rights reserved.
  *
  * The list of contributors can be found at:
@@ -38,6 +38,9 @@
 
 #include <Eigen/Dense>
 
+#include "dart/common/Deprecated.hpp"
+#include "dart/common/Memory.hpp"
+
 //------------------------------------------------------------------------------
 // Types
 //------------------------------------------------------------------------------
@@ -46,12 +49,58 @@ namespace Eigen {
 using Vector6d = Matrix<double, 6, 1>;
 using Matrix6d = Matrix<double, 6, 6>;
 
-inline Vector6d compose(const Eigen::Vector3d& _angular,
-                        const Eigen::Vector3d& _linear)
+inline Vector6d compose(
+    const Eigen::Vector3d& _angular, const Eigen::Vector3d& _linear)
 {
   Vector6d composition;
   composition << _angular, _linear;
   return composition;
+}
+
+// Deprecated
+using EIGEN_V_VEC3D = std::vector<Eigen::Vector3d>;
+
+// Deprecated
+using EIGEN_VV_VEC3D = std::vector<std::vector<Eigen::Vector3d>>;
+
+#if EIGEN_VERSION_AT_LEAST(3, 2, 1) && EIGEN_VERSION_AT_MOST(3, 2, 8)
+
+// Deprecated in favor of dart::common::aligned_vector
+template <typename _Tp>
+using aligned_vector
+    = std::vector<_Tp, dart::common::detail::aligned_allocator_cpp11<_Tp>>;
+
+// Deprecated in favor of dart::common::aligned_map
+template <typename _Key, typename _Tp, typename _Compare = std::less<_Key>>
+using aligned_map = std::map<
+    _Key,
+    _Tp,
+    _Compare,
+    dart::common::detail::aligned_allocator_cpp11<std::pair<const _Key, _Tp>>>;
+
+#else
+
+// Deprecated in favor of dart::common::aligned_vector
+template <typename _Tp>
+using aligned_vector = std::vector<_Tp, Eigen::aligned_allocator<_Tp>>;
+
+// Deprecated in favor of dart::common::aligned_map
+template <typename _Key, typename _Tp, typename _Compare = std::less<_Key>>
+using aligned_map = std::map<
+    _Key,
+    _Tp,
+    _Compare,
+    Eigen::aligned_allocator<std::pair<const _Key, _Tp>>>;
+
+#endif
+
+// Deprecated in favor of dart::common::make_aligned_shared
+template <typename _Tp, typename... _Args>
+DART_DEPRECATED(6.2)
+std::shared_ptr<_Tp> make_aligned_shared(_Args&&... __args)
+{
+  return ::dart::common::make_aligned_shared<_Tp, _Args...>(
+      std::forward<_Args>(__args)...);
 }
 
 } // namespace Eigen
@@ -64,7 +113,7 @@ using LinearJacobian = Eigen::Matrix<double, 3, Eigen::Dynamic>;
 using AngularJacobian = Eigen::Matrix<double, 3, Eigen::Dynamic>;
 using Jacobian = Eigen::Matrix<double, 6, Eigen::Dynamic>;
 
-}  // namespace math
-}  // namespace dart
+} // namespace math
+} // namespace dart
 
-#endif  // DART_MATH_MATHTYPES_HPP_
+#endif // DART_MATH_MATHTYPES_HPP_

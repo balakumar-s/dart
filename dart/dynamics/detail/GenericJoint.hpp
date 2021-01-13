@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2017, The DART development contributors
+ * Copyright (c) 2011-2019, The DART development contributors
  * All rights reserved.
  *
  * The list of contributors can be found at:
@@ -36,40 +36,40 @@
 #include "dart/dynamics/GenericJoint.hpp"
 
 #include "dart/config.hpp"
-#include "dart/math/Helpers.hpp"
-#include "dart/math/ConfigurationSpace.hpp"
 #include "dart/dynamics/BodyNode.hpp"
 #include "dart/dynamics/DegreeOfFreedom.hpp"
+#include "dart/math/ConfigurationSpace.hpp"
+#include "dart/math/Helpers.hpp"
 
-#define GenericJoint_REPORT_DIM_MISMATCH( func, arg )\
-  {\
-    dterr << "[GenericJoint::" #func "] Mismatch beteween size of "\
-          << #arg " [" << arg .size() << "] and the number of "\
-          << "DOFs [" << getNumDofs() << "] for Joint named ["\
-          << this->getName() << "].\n";\
-    assert(false);\
+#define GenericJoint_REPORT_DIM_MISMATCH(func, arg)                            \
+  {                                                                            \
+    dterr << "[GenericJoint::" #func "] Mismatch beteween size of "            \
+          << #arg " [" << arg.size() << "] and the number of "                 \
+          << "DOFs [" << getNumDofs() << "] for Joint named ["                 \
+          << this->getName() << "].\n";                                        \
+    assert(false);                                                             \
   }
 
-#define GenericJoint_REPORT_OUT_OF_RANGE( func, index )\
-  {\
-    dterr << "[GenericJoint::" << #func << "] The index [" << index\
-          << "] is out of range for Joint named [" << this->getName()\
-          << "] which has " << this->getNumDofs() << " DOFs.\n";\
-    assert(false);\
+#define GenericJoint_REPORT_OUT_OF_RANGE(func, index)                          \
+  {                                                                            \
+    dterr << "[GenericJoint::" << #func << "] The index [" << index            \
+          << "] is out of range for Joint named [" << this->getName()          \
+          << "] which has " << this->getNumDofs() << " DOFs.\n";               \
+    assert(false);                                                             \
   }
 
-#define GenericJoint_REPORT_UNSUPPORTED_ACTUATOR( func )\
-  {\
-    dterr << "[GenericJoint::" # func "] Unsupported actuator type ("\
-          << Joint::mAspectProperties.mActuatorType << ") for Joint ["\
-          << this->getName() << "].\n";\
-    assert(false);\
+#define GenericJoint_REPORT_UNSUPPORTED_ACTUATOR(func)                         \
+  {                                                                            \
+    dterr << "[GenericJoint::" #func "] Unsupported actuator type ("           \
+          << Joint::mAspectProperties.mActuatorType << ") for Joint ["         \
+          << this->getName() << "].\n";                                        \
+    assert(false);                                                             \
   }
 
-#define GenericJoint_SET_IF_DIFFERENT( mField, value )\
-  if( value == Base::mAspectProperties. mField )\
-    return;\
-  Base::mAspectProperties. mField = value;\
+#define GenericJoint_SET_IF_DIFFERENT(mField, value)                           \
+  if (value == Base::mAspectProperties.mField)                                 \
+    return;                                                                    \
+  Base::mAspectProperties.mField = value;                                      \
   Joint::incrementVersion();
 
 namespace dart {
@@ -128,20 +128,20 @@ void GenericJoint<ConfigSpaceT>::setAspectProperties(
   for (auto i = 0u; i < NumDofs; ++i)
   {
     setDofName(i, properties.mDofNames[i], properties.mPreserveDofNames[i]);
-    setPositionLowerLimit    (i, properties.mPositionLowerLimits[i]    );
-    setPositionUpperLimit    (i, properties.mPositionUpperLimits[i]    );
-    setInitialPosition       (i, properties.mInitialPositions[i]       );
-    setVelocityLowerLimit    (i, properties.mVelocityLowerLimits[i]    );
-    setVelocityUpperLimit    (i, properties.mVelocityUpperLimits[i]    );
-    setInitialVelocity       (i, properties.mInitialVelocities[i]      );
+    setPositionLowerLimit(i, properties.mPositionLowerLimits[i]);
+    setPositionUpperLimit(i, properties.mPositionUpperLimits[i]);
+    setInitialPosition(i, properties.mInitialPositions[i]);
+    setVelocityLowerLimit(i, properties.mVelocityLowerLimits[i]);
+    setVelocityUpperLimit(i, properties.mVelocityUpperLimits[i]);
+    setInitialVelocity(i, properties.mInitialVelocities[i]);
     setAccelerationLowerLimit(i, properties.mAccelerationLowerLimits[i]);
     setAccelerationUpperLimit(i, properties.mAccelerationUpperLimits[i]);
-    setForceLowerLimit       (i, properties.mForceLowerLimits[i]       );
-    setForceUpperLimit       (i, properties.mForceUpperLimits[i]       );
-    setSpringStiffness       (i, properties.mSpringStiffnesses[i]      );
-    setRestPosition          (i, properties.mRestPositions[i]          );
-    setDampingCoefficient    (i, properties.mDampingCoefficients[i]    );
-    setCoulombFriction       (i, properties.mFrictions[i]              );
+    setForceLowerLimit(i, properties.mForceLowerLimits[i]);
+    setForceUpperLimit(i, properties.mForceUpperLimits[i]);
+    setSpringStiffness(i, properties.mSpringStiffnesses[i]);
+    setRestPosition(i, properties.mRestPositions[i]);
+    setDampingCoefficient(i, properties.mDampingCoefficients[i]);
+    setCoulombFriction(i, properties.mFrictions[i]);
   }
 }
 
@@ -151,13 +151,12 @@ typename GenericJoint<ConfigSpaceT>::Properties
 GenericJoint<ConfigSpaceT>::getGenericJointProperties() const
 {
   return GenericJoint<ConfigSpaceT>::Properties(
-        Joint::mAspectProperties, Base::mAspectProperties);
+      Joint::mAspectProperties, Base::mAspectProperties);
 }
 
 //==============================================================================
 template <class ConfigSpaceT>
-void GenericJoint<ConfigSpaceT>::copy(
-    const GenericJoint<ConfigSpaceT>& other)
+void GenericJoint<ConfigSpaceT>::copy(const GenericJoint<ConfigSpaceT>& other)
 {
   if (this == &other)
     return;
@@ -167,8 +166,7 @@ void GenericJoint<ConfigSpaceT>::copy(
 
 //==============================================================================
 template <class ConfigSpaceT>
-void GenericJoint<ConfigSpaceT>::copy(
-    const GenericJoint<ConfigSpaceT>* other)
+void GenericJoint<ConfigSpaceT>::copy(const GenericJoint<ConfigSpaceT>* other)
 {
   if (nullptr == other)
     return;
@@ -178,8 +176,7 @@ void GenericJoint<ConfigSpaceT>::copy(
 
 //==============================================================================
 template <class ConfigSpaceT>
-GenericJoint<ConfigSpaceT>&
-GenericJoint<ConfigSpaceT>::operator=(
+GenericJoint<ConfigSpaceT>& GenericJoint<ConfigSpaceT>::operator=(
     const GenericJoint<ConfigSpaceT>& other)
 {
   copy(other);
@@ -220,9 +217,7 @@ size_t GenericJoint<ConfigSpaceT>::getNumDofs() const
 //==============================================================================
 template <class ConfigSpaceT>
 const std::string& GenericJoint<ConfigSpaceT>::setDofName(
-    size_t index,
-    const std::string& name,
-    bool preserveName)
+    size_t index, const std::string& name, bool preserveName)
 {
   if (NumDofs <= index)
   {
@@ -261,14 +256,14 @@ void GenericJoint<ConfigSpaceT>::preserveDofName(size_t index, bool preserve)
     return;
   }
 
-  GenericJoint_SET_IF_DIFFERENT( mPreserveDofNames[index], preserve );
+  GenericJoint_SET_IF_DIFFERENT(mPreserveDofNames[index], preserve);
 }
 
 //==============================================================================
 template <class ConfigSpaceT>
 bool GenericJoint<ConfigSpaceT>::isDofNamePreserved(size_t index) const
 {
-  if(NumDofs <= index)
+  if (NumDofs <= index)
   {
     GenericJoint_REPORT_OUT_OF_RANGE(isDofNamePreserved, index);
     index = 0;
@@ -281,10 +276,10 @@ bool GenericJoint<ConfigSpaceT>::isDofNamePreserved(size_t index) const
 template <class ConfigSpaceT>
 const std::string& GenericJoint<ConfigSpaceT>::getDofName(size_t index) const
 {
-  if(NumDofs <= index)
+  if (NumDofs <= index)
   {
-    dterr << "[GenericJoint::getDofName] Requested name of DOF index ["
-          << index << "] in Joint [" << this->getName() << "], but that is "
+    dterr << "[GenericJoint::getDofName] Requested name of DOF index [" << index
+          << "] in Joint [" << this->getName() << "], but that is "
           << "out of bounds (max " << NumDofs - 1
           << "). Returning name of DOF 0.\n";
     assert(false);
@@ -296,8 +291,7 @@ const std::string& GenericJoint<ConfigSpaceT>::getDofName(size_t index) const
 
 //==============================================================================
 template <class ConfigSpaceT>
-size_t
-GenericJoint<ConfigSpaceT>::getIndexInSkeleton(size_t index) const
+size_t GenericJoint<ConfigSpaceT>::getIndexInSkeleton(size_t index) const
 {
   if (index >= getNumDofs())
   {
@@ -331,7 +325,8 @@ void GenericJoint<ConfigSpaceT>::setCommand(size_t index, double command)
   switch (Joint::mAspectProperties.mActuatorType)
   {
     case Joint::FORCE:
-      this->mAspectState.mCommands[index] = math::clip(command,
+      this->mAspectState.mCommands[index] = math::clip(
+          command,
           Base::mAspectProperties.mForceLowerLimits[index],
           Base::mAspectProperties.mForceUpperLimits[index]);
       break;
@@ -345,17 +340,32 @@ void GenericJoint<ConfigSpaceT>::setCommand(size_t index, double command)
       this->mAspectState.mCommands[index] = command;
       break;
     case Joint::SERVO:
-      this->mAspectState.mCommands[index] = math::clip(command,
+      this->mAspectState.mCommands[index] = math::clip(
+          command,
+          Base::mAspectProperties.mVelocityLowerLimits[index],
+          Base::mAspectProperties.mVelocityUpperLimits[index]);
+      break;
+    case Joint::MIMIC:
+      if (0.0 != command)
+      {
+        dtwarn << "[GenericJoint::setCommand] Attempting to set a non-zero ("
+               << command << ") command for a MIMIC joint [" << this->getName()
+               << "].\n";
+      }
+      this->mAspectState.mCommands[index] = math::clip(
+          command,
           Base::mAspectProperties.mVelocityLowerLimits[index],
           Base::mAspectProperties.mVelocityUpperLimits[index]);
       break;
     case Joint::ACCELERATION:
-      this->mAspectState.mCommands[index] = math::clip(command,
+      this->mAspectState.mCommands[index] = math::clip(
+          command,
           Base::mAspectProperties.mAccelerationLowerLimits[index],
           Base::mAspectProperties.mAccelerationUpperLimits[index]);
       break;
     case Joint::VELOCITY:
-      this->mAspectState.mCommands[index] = math::clip(command,
+      this->mAspectState.mCommands[index] = math::clip(
+          command,
           Base::mAspectProperties.mVelocityLowerLimits[index],
           Base::mAspectProperties.mVelocityUpperLimits[index]);
       // TODO: This possibly makes the acceleration to exceed the limits.
@@ -390,8 +400,7 @@ double GenericJoint<ConfigSpaceT>::getCommand(size_t index) const
 
 //==============================================================================
 template <class ConfigSpaceT>
-void GenericJoint<ConfigSpaceT>::setCommands(
-    const Eigen::VectorXd& commands)
+void GenericJoint<ConfigSpaceT>::setCommands(const Eigen::VectorXd& commands)
 {
   if (static_cast<size_t>(commands.size()) != getNumDofs())
   {
@@ -402,12 +411,13 @@ void GenericJoint<ConfigSpaceT>::setCommands(
   switch (Joint::mAspectProperties.mActuatorType)
   {
     case Joint::FORCE:
-      this->mAspectState.mCommands = math::clip(commands,
+      this->mAspectState.mCommands = math::clip(
+          commands,
           Base::mAspectProperties.mForceLowerLimits,
           Base::mAspectProperties.mForceUpperLimits);
       break;
     case Joint::PASSIVE:
-      if(Vector::Zero() != commands)
+      if (Vector::Zero() != commands)
       {
         dtwarn << "[GenericJoint::setCommands] Attempting to set a non-zero ("
                << commands.transpose() << ") command for a PASSIVE joint ["
@@ -416,23 +426,38 @@ void GenericJoint<ConfigSpaceT>::setCommands(
       this->mAspectState.mCommands = commands;
       break;
     case Joint::SERVO:
-      this->mAspectState.mCommands = math::clip(commands,
+      this->mAspectState.mCommands = math::clip(
+          commands,
+          Base::mAspectProperties.mVelocityLowerLimits,
+          Base::mAspectProperties.mVelocityUpperLimits);
+      break;
+    case Joint::MIMIC:
+      if (Vector::Zero() != commands)
+      {
+        dtwarn << "[GenericJoint::setCommands] Attempting to set a non-zero ("
+               << commands.transpose() << ") command for a MIMIC joint ["
+               << this->getName() << "].\n";
+      }
+      this->mAspectState.mCommands = math::clip(
+          commands,
           Base::mAspectProperties.mVelocityLowerLimits,
           Base::mAspectProperties.mVelocityUpperLimits);
       break;
     case Joint::ACCELERATION:
-      this->mAspectState.mCommands = math::clip(commands,
+      this->mAspectState.mCommands = math::clip(
+          commands,
           Base::mAspectProperties.mAccelerationLowerLimits,
           Base::mAspectProperties.mAccelerationUpperLimits);
       break;
     case Joint::VELOCITY:
-      this->mAspectState.mCommands = math::clip(commands,
+      this->mAspectState.mCommands = math::clip(
+          commands,
           Base::mAspectProperties.mVelocityLowerLimits,
           Base::mAspectProperties.mVelocityUpperLimits);
       // TODO: This possibly makes the acceleration to exceed the limits.
       break;
     case Joint::LOCKED:
-      if(Vector::Zero() != commands)
+      if (Vector::Zero() != commands)
       {
         dtwarn << "[GenericJoint::setCommands] Attempting to set a non-zero ("
                << commands.transpose() << ") command for a LOCKED joint ["
@@ -473,8 +498,8 @@ void GenericJoint<ConfigSpaceT>::setPosition(size_t index, double position)
   if (this->mAspectState.mPositions[index] == position)
     return;
   // TODO(JS): Above code should be changed something like:
-//  if (ConfigSpaceT::getEuclideanPoint(mPositions, index) == position)
-//    return;
+  //  if (ConfigSpaceT::getEuclideanPoint(mPositions, index) == position)
+  //    return;
 
   // Note: It would not make much sense to use setPositionsStatic() here
   this->mAspectState.mPositions[index] = position;
@@ -496,8 +521,7 @@ double GenericJoint<ConfigSpaceT>::getPosition(size_t index) const
 
 //==============================================================================
 template <class ConfigSpaceT>
-void GenericJoint<ConfigSpaceT>::setPositions(
-    const Eigen::VectorXd& positions)
+void GenericJoint<ConfigSpaceT>::setPositions(const Eigen::VectorXd& positions)
 {
   if (static_cast<size_t>(positions.size()) != getNumDofs())
   {
@@ -526,7 +550,7 @@ void GenericJoint<ConfigSpaceT>::setPositionLowerLimit(
     return;
   }
 
-  GenericJoint_SET_IF_DIFFERENT( mPositionLowerLimits[index], position );
+  GenericJoint_SET_IF_DIFFERENT(mPositionLowerLimits[index], position);
 }
 
 //==============================================================================
@@ -544,8 +568,29 @@ double GenericJoint<ConfigSpaceT>::getPositionLowerLimit(size_t index) const
 
 //==============================================================================
 template <class ConfigSpaceT>
-void GenericJoint<ConfigSpaceT>::setPositionUpperLimit(size_t index,
-                                                       double position)
+void GenericJoint<ConfigSpaceT>::setPositionLowerLimits(
+    const Eigen::VectorXd& lowerLimits)
+{
+  if (static_cast<size_t>(lowerLimits.size()) != getNumDofs())
+  {
+    GenericJoint_REPORT_DIM_MISMATCH(setPositionLowerLimits, lowerLimits);
+    return;
+  }
+
+  GenericJoint_SET_IF_DIFFERENT(mPositionLowerLimits, lowerLimits);
+}
+
+//==============================================================================
+template <class ConfigSpaceT>
+Eigen::VectorXd GenericJoint<ConfigSpaceT>::getPositionLowerLimits() const
+{
+  return Base::mAspectProperties.mPositionLowerLimits;
+}
+
+//==============================================================================
+template <class ConfigSpaceT>
+void GenericJoint<ConfigSpaceT>::setPositionUpperLimit(
+    size_t index, double position)
 {
   if (index >= getNumDofs())
   {
@@ -553,7 +598,7 @@ void GenericJoint<ConfigSpaceT>::setPositionUpperLimit(size_t index,
     return;
   }
 
-  GenericJoint_SET_IF_DIFFERENT( mPositionUpperLimits[index], position );
+  GenericJoint_SET_IF_DIFFERENT(mPositionUpperLimits[index], position);
 }
 
 //==============================================================================
@@ -571,6 +616,27 @@ double GenericJoint<ConfigSpaceT>::getPositionUpperLimit(size_t index) const
 
 //==============================================================================
 template <class ConfigSpaceT>
+void GenericJoint<ConfigSpaceT>::setPositionUpperLimits(
+    const Eigen::VectorXd& upperLimits)
+{
+  if (static_cast<size_t>(upperLimits.size()) != getNumDofs())
+  {
+    GenericJoint_REPORT_DIM_MISMATCH(setPositionUpperLimits, upperLimits);
+    return;
+  }
+
+  GenericJoint_SET_IF_DIFFERENT(mPositionUpperLimits, upperLimits);
+}
+
+//==============================================================================
+template <class ConfigSpaceT>
+Eigen::VectorXd GenericJoint<ConfigSpaceT>::getPositionUpperLimits() const
+{
+  return Base::mAspectProperties.mPositionUpperLimits;
+}
+
+//==============================================================================
+template <class ConfigSpaceT>
 bool GenericJoint<ConfigSpaceT>::hasPositionLimit(size_t index) const
 {
   if (index >= getNumDofs())
@@ -580,7 +646,7 @@ bool GenericJoint<ConfigSpaceT>::hasPositionLimit(size_t index) const
   }
 
   return std::isfinite(Base::mAspectProperties.mPositionUpperLimits[index])
-      || std::isfinite(Base::mAspectProperties.mPositionLowerLimits[index]);
+         || std::isfinite(Base::mAspectProperties.mPositionLowerLimits[index]);
 }
 
 //==============================================================================
@@ -614,7 +680,7 @@ void GenericJoint<ConfigSpaceT>::setInitialPosition(
     return;
   }
 
-  GenericJoint_SET_IF_DIFFERENT( mInitialPositions[index], initial );
+  GenericJoint_SET_IF_DIFFERENT(mInitialPositions[index], initial);
 }
 
 //==============================================================================
@@ -635,13 +701,13 @@ template <class ConfigSpaceT>
 void GenericJoint<ConfigSpaceT>::setInitialPositions(
     const Eigen::VectorXd& initial)
 {
-  if ( static_cast<size_t>(initial.size()) != getNumDofs() )
+  if (static_cast<size_t>(initial.size()) != getNumDofs())
   {
     GenericJoint_REPORT_DIM_MISMATCH(setInitialPositions, initial);
     return;
   }
 
-  GenericJoint_SET_IF_DIFFERENT( mInitialPositions, initial);
+  GenericJoint_SET_IF_DIFFERENT(mInitialPositions, initial);
 }
 
 //==============================================================================
@@ -672,8 +738,7 @@ GenericJoint<ConfigSpaceT>::getPositionsStatic() const
 
 //==============================================================================
 template <class ConfigSpaceT>
-void GenericJoint<ConfigSpaceT>::setVelocitiesStatic(
-    const Vector& velocities)
+void GenericJoint<ConfigSpaceT>::setVelocitiesStatic(const Vector& velocities)
 {
   if (this->mAspectState.mVelocities == velocities)
     return;
@@ -769,8 +834,8 @@ Eigen::VectorXd GenericJoint<ConfigSpaceT>::getVelocities() const
 
 //==============================================================================
 template <class ConfigSpaceT>
-void GenericJoint<ConfigSpaceT>::setVelocityLowerLimit(size_t index,
-                                                          double velocity)
+void GenericJoint<ConfigSpaceT>::setVelocityLowerLimit(
+    size_t index, double velocity)
 {
   if (index >= getNumDofs())
   {
@@ -778,7 +843,7 @@ void GenericJoint<ConfigSpaceT>::setVelocityLowerLimit(size_t index,
     return;
   }
 
-  GenericJoint_SET_IF_DIFFERENT( mVelocityLowerLimits[index], velocity );
+  GenericJoint_SET_IF_DIFFERENT(mVelocityLowerLimits[index], velocity);
 }
 
 //==============================================================================
@@ -796,8 +861,29 @@ double GenericJoint<ConfigSpaceT>::getVelocityLowerLimit(size_t index) const
 
 //==============================================================================
 template <class ConfigSpaceT>
-void GenericJoint<ConfigSpaceT>::setVelocityUpperLimit(size_t index,
-                                                          double velocity)
+void GenericJoint<ConfigSpaceT>::setVelocityLowerLimits(
+    const Eigen::VectorXd& lowerLimits)
+{
+  if (static_cast<size_t>(lowerLimits.size()) != getNumDofs())
+  {
+    GenericJoint_REPORT_DIM_MISMATCH(setVelocityLowerLimits, lowerLimits);
+    return;
+  }
+
+  GenericJoint_SET_IF_DIFFERENT(mVelocityLowerLimits, lowerLimits);
+}
+
+//==============================================================================
+template <class ConfigSpaceT>
+Eigen::VectorXd GenericJoint<ConfigSpaceT>::getVelocityLowerLimits() const
+{
+  return Base::mAspectProperties.mVelocityLowerLimits;
+}
+
+//==============================================================================
+template <class ConfigSpaceT>
+void GenericJoint<ConfigSpaceT>::setVelocityUpperLimit(
+    size_t index, double velocity)
 {
   if (index >= getNumDofs())
   {
@@ -805,13 +891,12 @@ void GenericJoint<ConfigSpaceT>::setVelocityUpperLimit(size_t index,
     return;
   }
 
-  GenericJoint_SET_IF_DIFFERENT( mVelocityUpperLimits[index], velocity );
+  GenericJoint_SET_IF_DIFFERENT(mVelocityUpperLimits[index], velocity);
 }
 
 //==============================================================================
 template <class ConfigSpaceT>
-double GenericJoint<ConfigSpaceT>::getVelocityUpperLimit(
-    size_t index) const
+double GenericJoint<ConfigSpaceT>::getVelocityUpperLimit(size_t index) const
 {
   if (index >= getNumDofs())
   {
@@ -820,6 +905,27 @@ double GenericJoint<ConfigSpaceT>::getVelocityUpperLimit(
   }
 
   return Base::mAspectProperties.mVelocityUpperLimits[index];
+}
+
+//==============================================================================
+template <class ConfigSpaceT>
+void GenericJoint<ConfigSpaceT>::setVelocityUpperLimits(
+    const Eigen::VectorXd& upperLimits)
+{
+  if (static_cast<size_t>(upperLimits.size()) != getNumDofs())
+  {
+    GenericJoint_REPORT_DIM_MISMATCH(setVelocityUpperLimits, upperLimits);
+    return;
+  }
+
+  GenericJoint_SET_IF_DIFFERENT(mVelocityUpperLimits, upperLimits);
+}
+
+//==============================================================================
+template <class ConfigSpaceT>
+Eigen::VectorXd GenericJoint<ConfigSpaceT>::getVelocityUpperLimits() const
+{
+  return Base::mAspectProperties.mVelocityUpperLimits;
 }
 
 //==============================================================================
@@ -844,8 +950,8 @@ void GenericJoint<ConfigSpaceT>::resetVelocities()
 
 //==============================================================================
 template <class ConfigSpaceT>
-void GenericJoint<ConfigSpaceT>::setInitialVelocity(size_t index,
-                                                       double initial)
+void GenericJoint<ConfigSpaceT>::setInitialVelocity(
+    size_t index, double initial)
 {
   if (index >= getNumDofs())
   {
@@ -853,7 +959,7 @@ void GenericJoint<ConfigSpaceT>::setInitialVelocity(size_t index,
     return;
   }
 
-  GenericJoint_SET_IF_DIFFERENT( mInitialVelocities[index], initial );
+  GenericJoint_SET_IF_DIFFERENT(mInitialVelocities[index], initial);
 }
 
 //==============================================================================
@@ -874,13 +980,13 @@ template <class ConfigSpaceT>
 void GenericJoint<ConfigSpaceT>::setInitialVelocities(
     const Eigen::VectorXd& initial)
 {
-  if ( static_cast<size_t>(initial.size()) != getNumDofs() )
+  if (static_cast<size_t>(initial.size()) != getNumDofs())
   {
-    GenericJoint_REPORT_DIM_MISMATCH( setInitialVelocities, initial );
+    GenericJoint_REPORT_DIM_MISMATCH(setInitialVelocities, initial);
     return;
   }
 
-  GenericJoint_SET_IF_DIFFERENT( mInitialVelocities, initial );
+  GenericJoint_SET_IF_DIFFERENT(mInitialVelocities, initial);
 }
 
 //==============================================================================
@@ -897,11 +1003,11 @@ void GenericJoint<ConfigSpaceT>::setAcceleration(
 {
   if (index >= getNumDofs())
   {
-    GenericJoint_REPORT_OUT_OF_RANGE( setAcceleration, index );
+    GenericJoint_REPORT_OUT_OF_RANGE(setAcceleration, index);
     return;
   }
 
-  if(this->mAspectState.mAccelerations[index] == acceleration)
+  if (this->mAspectState.mAccelerations[index] == acceleration)
     return;
 
   // Note: It would not make much sense to use setAccelerationsStatic() here
@@ -932,7 +1038,7 @@ void GenericJoint<ConfigSpaceT>::setAccelerations(
 {
   if (static_cast<size_t>(accelerations.size()) != getNumDofs())
   {
-    GenericJoint_REPORT_DIM_MISMATCH( setAccelerations, accelerations );
+    GenericJoint_REPORT_DIM_MISMATCH(setAccelerations, accelerations);
     return;
   }
 
@@ -960,14 +1066,12 @@ void GenericJoint<ConfigSpaceT>::setAccelerationLowerLimit(
     return;
   }
 
-  GenericJoint_SET_IF_DIFFERENT( mAccelerationLowerLimits[index],
-                                  acceleration );
+  GenericJoint_SET_IF_DIFFERENT(mAccelerationLowerLimits[index], acceleration);
 }
 
 //==============================================================================
 template <class ConfigSpaceT>
-double GenericJoint<ConfigSpaceT>::getAccelerationLowerLimit(
-    size_t index) const
+double GenericJoint<ConfigSpaceT>::getAccelerationLowerLimit(size_t index) const
 {
   if (index >= getNumDofs())
   {
@@ -980,23 +1084,41 @@ double GenericJoint<ConfigSpaceT>::getAccelerationLowerLimit(
 
 //==============================================================================
 template <class ConfigSpaceT>
+void GenericJoint<ConfigSpaceT>::setAccelerationLowerLimits(
+    const Eigen::VectorXd& lowerLimits)
+{
+  if (static_cast<size_t>(lowerLimits.size()) != getNumDofs())
+  {
+    GenericJoint_REPORT_DIM_MISMATCH(setAccelerationLowerLimits, lowerLimits);
+    return;
+  }
+
+  GenericJoint_SET_IF_DIFFERENT(mAccelerationLowerLimits, lowerLimits);
+}
+
+//==============================================================================
+template <class ConfigSpaceT>
+Eigen::VectorXd GenericJoint<ConfigSpaceT>::getAccelerationLowerLimits() const
+{
+  return Base::mAspectProperties.mAccelerationLowerLimits;
+}
+
+//==============================================================================
+template <class ConfigSpaceT>
 void GenericJoint<ConfigSpaceT>::setAccelerationUpperLimit(
     size_t index, double acceleration)
 {
   if (index >= getNumDofs())
   {
-    GenericJoint_REPORT_OUT_OF_RANGE(setAccelerationUpperLimit, index)
-    return;
+    GenericJoint_REPORT_OUT_OF_RANGE(setAccelerationUpperLimit, index) return;
   }
 
-  GenericJoint_SET_IF_DIFFERENT( mAccelerationUpperLimits[index],
-                                  acceleration);
+  GenericJoint_SET_IF_DIFFERENT(mAccelerationUpperLimits[index], acceleration);
 }
 
 //==============================================================================
 template <class ConfigSpaceT>
-double GenericJoint<ConfigSpaceT>::getAccelerationUpperLimit(
-    size_t index) const
+double GenericJoint<ConfigSpaceT>::getAccelerationUpperLimit(size_t index) const
 {
   if (index >= getNumDofs())
   {
@@ -1005,6 +1127,27 @@ double GenericJoint<ConfigSpaceT>::getAccelerationUpperLimit(
   }
 
   return Base::mAspectProperties.mAccelerationUpperLimits[index];
+}
+
+//==============================================================================
+template <class ConfigSpaceT>
+void GenericJoint<ConfigSpaceT>::setAccelerationUpperLimits(
+    const Eigen::VectorXd& upperLimits)
+{
+  if (static_cast<size_t>(upperLimits.size()) != getNumDofs())
+  {
+    GenericJoint_REPORT_DIM_MISMATCH(setAccelerationUpperLimits, upperLimits);
+    return;
+  }
+
+  GenericJoint_SET_IF_DIFFERENT(mAccelerationUpperLimits, upperLimits);
+}
+
+//==============================================================================
+template <class ConfigSpaceT>
+Eigen::VectorXd GenericJoint<ConfigSpaceT>::getAccelerationUpperLimits() const
+{
+  return Base::mAspectProperties.mAccelerationUpperLimits;
 }
 
 //==============================================================================
@@ -1032,7 +1175,7 @@ void GenericJoint<ConfigSpaceT>::setForce(size_t index, double force)
 
 //==============================================================================
 template <class ConfigSpaceT>
-double GenericJoint<ConfigSpaceT>::getForce(size_t index)
+double GenericJoint<ConfigSpaceT>::getForce(size_t index) const
 {
   if (index >= getNumDofs())
   {
@@ -1076,13 +1219,12 @@ void GenericJoint<ConfigSpaceT>::setForceLowerLimit(size_t index, double force)
     return;
   }
 
-  GenericJoint_SET_IF_DIFFERENT( mForceLowerLimits[index], force );
+  GenericJoint_SET_IF_DIFFERENT(mForceLowerLimits[index], force);
 }
 
 //==============================================================================
 template <class ConfigSpaceT>
-double GenericJoint<ConfigSpaceT>::getForceLowerLimit(
-    size_t index) const
+double GenericJoint<ConfigSpaceT>::getForceLowerLimit(size_t index) const
 {
   if (index >= getNumDofs())
   {
@@ -1095,6 +1237,27 @@ double GenericJoint<ConfigSpaceT>::getForceLowerLimit(
 
 //==============================================================================
 template <class ConfigSpaceT>
+void GenericJoint<ConfigSpaceT>::setForceLowerLimits(
+    const Eigen::VectorXd& lowerLimits)
+{
+  if (static_cast<size_t>(lowerLimits.size()) != getNumDofs())
+  {
+    GenericJoint_REPORT_DIM_MISMATCH(setForceLowerLimits, lowerLimits);
+    return;
+  }
+
+  GenericJoint_SET_IF_DIFFERENT(mForceLowerLimits, lowerLimits);
+}
+
+//==============================================================================
+template <class ConfigSpaceT>
+Eigen::VectorXd GenericJoint<ConfigSpaceT>::getForceLowerLimits() const
+{
+  return Base::mAspectProperties.mForceLowerLimits;
+}
+
+//==============================================================================
+template <class ConfigSpaceT>
 void GenericJoint<ConfigSpaceT>::setForceUpperLimit(size_t index, double force)
 {
   if (index >= getNumDofs())
@@ -1103,13 +1266,12 @@ void GenericJoint<ConfigSpaceT>::setForceUpperLimit(size_t index, double force)
     return;
   }
 
-  GenericJoint_SET_IF_DIFFERENT( mForceUpperLimits[index], force );
+  GenericJoint_SET_IF_DIFFERENT(mForceUpperLimits[index], force);
 }
 
 //==============================================================================
 template <class ConfigSpaceT>
-double GenericJoint<ConfigSpaceT>::getForceUpperLimit(
-    size_t index) const
+double GenericJoint<ConfigSpaceT>::getForceUpperLimit(size_t index) const
 {
   if (index >= getNumDofs())
   {
@@ -1118,6 +1280,27 @@ double GenericJoint<ConfigSpaceT>::getForceUpperLimit(
   }
 
   return Base::mAspectProperties.mForceUpperLimits[index];
+}
+
+//==============================================================================
+template <class ConfigSpaceT>
+void GenericJoint<ConfigSpaceT>::setForceUpperLimits(
+    const Eigen::VectorXd& upperLimits)
+{
+  if (static_cast<size_t>(upperLimits.size()) != getNumDofs())
+  {
+    GenericJoint_REPORT_DIM_MISMATCH(setForceUpperLimits, upperLimits);
+    return;
+  }
+
+  GenericJoint_SET_IF_DIFFERENT(mForceUpperLimits, upperLimits);
+}
+
+//==============================================================================
+template <class ConfigSpaceT>
+Eigen::VectorXd GenericJoint<ConfigSpaceT>::getForceUpperLimits() const
+{
+  return Base::mAspectProperties.mForceUpperLimits;
 }
 
 //==============================================================================
@@ -1166,8 +1349,8 @@ void GenericJoint<ConfigSpaceT>::resetVelocityChanges()
 
 //==============================================================================
 template <class ConfigSpaceT>
-void GenericJoint<ConfigSpaceT>::setConstraintImpulse(size_t index,
-                                                         double impulse)
+void GenericJoint<ConfigSpaceT>::setConstraintImpulse(
+    size_t index, double impulse)
 {
   if (index >= getNumDofs())
   {
@@ -1203,8 +1386,9 @@ template <class ConfigSpaceT>
 void GenericJoint<ConfigSpaceT>::integratePositions(double dt)
 {
   const Point& point = math::integratePosition<ConfigSpaceT>(
-        math::toManifoldPoint<ConfigSpaceT>(getPositionsStatic()),
-        getVelocitiesStatic(), dt);
+      math::toManifoldPoint<ConfigSpaceT>(getPositionsStatic()),
+      getVelocitiesStatic(),
+      dt);
 
   setPositionsStatic(math::toEuclideanPoint<ConfigSpaceT>(point));
 }
@@ -1214,8 +1398,7 @@ template <class ConfigSpaceT>
 void GenericJoint<ConfigSpaceT>::integrateVelocities(double dt)
 {
   setVelocitiesStatic(math::integrateVelocity<ConfigSpaceT>(
-                        getVelocitiesStatic(),
-                        getAccelerationsStatic(), dt));
+      getVelocitiesStatic(), getAccelerationsStatic(), dt));
 }
 
 //==============================================================================
@@ -1258,7 +1441,7 @@ void GenericJoint<ConfigSpaceT>::setSpringStiffness(size_t index, double k)
 
   assert(k >= 0.0);
 
-  GenericJoint_SET_IF_DIFFERENT( mSpringStiffnesses[index], k );
+  GenericJoint_SET_IF_DIFFERENT(mSpringStiffnesses[index], k);
 }
 
 //==============================================================================
@@ -1284,19 +1467,7 @@ void GenericJoint<ConfigSpaceT>::setRestPosition(size_t index, double q0)
     return;
   }
 
-  if (Base::mAspectProperties.mPositionLowerLimits[index] > q0
-      || Base::mAspectProperties.mPositionUpperLimits[index] < q0)
-  {
-    dtwarn << "[GenericJoint::setRestPosition] Value of _q0 [" << q0
-           << "], is out of the limit range ["
-           << Base::mAspectProperties.mPositionLowerLimits[index] << ", "
-           << Base::mAspectProperties.mPositionUpperLimits[index]
-           << "] for index [" << index << "] of Joint [" << this->getName()
-           << "].\n";
-    return;
-  }
-
-    GenericJoint_SET_IF_DIFFERENT( mRestPositions[index], q0 );
+  GenericJoint_SET_IF_DIFFERENT(mRestPositions[index], q0);
 }
 
 //==============================================================================
@@ -1314,8 +1485,7 @@ double GenericJoint<ConfigSpaceT>::getRestPosition(size_t index) const
 
 //==============================================================================
 template <class ConfigSpaceT>
-void GenericJoint<ConfigSpaceT>::setDampingCoefficient(size_t index,
-                                                          double d)
+void GenericJoint<ConfigSpaceT>::setDampingCoefficient(size_t index, double d)
 {
   if (index >= getNumDofs())
   {
@@ -1325,7 +1495,7 @@ void GenericJoint<ConfigSpaceT>::setDampingCoefficient(size_t index,
 
   assert(d >= 0.0);
 
-  GenericJoint_SET_IF_DIFFERENT( mDampingCoefficients[index], d );
+  GenericJoint_SET_IF_DIFFERENT(mDampingCoefficients[index], d);
 }
 
 //==============================================================================
@@ -1354,7 +1524,7 @@ void GenericJoint<ConfigSpaceT>::setCoulombFriction(
 
   assert(friction >= 0.0);
 
-  GenericJoint_SET_IF_DIFFERENT( mFrictions[index], friction );
+  GenericJoint_SET_IF_DIFFERENT(mFrictions[index], friction);
 }
 
 //==============================================================================
@@ -1378,16 +1548,18 @@ double GenericJoint<ConfigSpaceT>::computePotentialEnergy() const
   Vector displacement
       = getPositionsStatic() - Base::mAspectProperties.mRestPositions;
 
-  const double pe = 0.5 * displacement.dot(
-        Base::mAspectProperties.mSpringStiffnesses.cwiseProduct(displacement));
+  const double pe
+      = 0.5
+        * displacement.dot(
+              Base::mAspectProperties.mSpringStiffnesses.cwiseProduct(
+                  displacement));
 
   return pe;
 }
 
 //==============================================================================
 template <class ConfigSpaceT>
-const math::Jacobian
-GenericJoint<ConfigSpaceT>::getRelativeJacobian() const
+const math::Jacobian GenericJoint<ConfigSpaceT>::getRelativeJacobian() const
 {
   return getRelativeJacobianStatic();
 }
@@ -1416,8 +1588,8 @@ math::Jacobian GenericJoint<ConfigSpaceT>::getRelativeJacobian(
 
 //==============================================================================
 template <class ConfigSpaceT>
-const math::Jacobian
-GenericJoint<ConfigSpaceT>::getRelativeJacobianTimeDeriv() const
+const math::Jacobian GenericJoint<ConfigSpaceT>::getRelativeJacobianTimeDeriv()
+    const
 {
   return getRelativeJacobianTimeDerivStatic();
 }
@@ -1438,8 +1610,7 @@ GenericJoint<ConfigSpaceT>::getRelativeJacobianTimeDerivStatic() const
 
 //==============================================================================
 template <class ConfigSpaceT>
-GenericJoint<ConfigSpaceT>::GenericJoint(
-    const Properties& properties)
+GenericJoint<ConfigSpaceT>::GenericJoint(const Properties& properties)
   : mVelocityChanges(Vector::Zero()),
     mImpulses(Vector::Zero()),
     mConstraintImpulses(Vector::Zero()),
@@ -1466,44 +1637,43 @@ void GenericJoint<ConfigSpaceT>::registerDofs()
   for (auto i = 0u; i < NumDofs; ++i)
   {
     Base::mAspectProperties.mDofNames[i]
-        = skel->mNameMgrForDofs.issueNewNameAndAdd(mDofs[i]->getName(),
-                                                   mDofs[i]);
+        = skel->mNameMgrForDofs.issueNewNameAndAdd(
+            mDofs[i]->getName(), mDofs[i]);
   }
 }
 
 //==============================================================================
 template <class ConfigSpaceT>
-Eigen::Vector6d
-GenericJoint<ConfigSpaceT>::getBodyConstraintWrench() const
+Eigen::Vector6d GenericJoint<ConfigSpaceT>::getBodyConstraintWrench() const
 {
   assert(this->mChildBodyNode);
   return this->mChildBodyNode->getBodyForce()
-      - this->getRelativeJacobianStatic() * this->mAspectState.mForces;
+         - this->getRelativeJacobianStatic() * this->mAspectState.mForces;
 }
 
 //==============================================================================
 template <class ConfigSpaceT>
 void GenericJoint<ConfigSpaceT>::updateRelativeSpatialVelocity() const
 {
-  this->mSpatialVelocity =
-      this->getRelativeJacobianStatic() * this->getVelocitiesStatic();
+  this->mSpatialVelocity
+      = this->getRelativeJacobianStatic() * this->getVelocitiesStatic();
 }
 
 //==============================================================================
 template <class ConfigSpaceT>
 void GenericJoint<ConfigSpaceT>::updateRelativeSpatialAcceleration() const
 {
-  this->mSpatialAcceleration =
-      this->getRelativePrimaryAcceleration()
-      + this->getRelativeJacobianTimeDerivStatic() * this->getVelocitiesStatic();
+  this->mSpatialAcceleration = this->getRelativePrimaryAcceleration()
+                               + this->getRelativeJacobianTimeDerivStatic()
+                                     * this->getVelocitiesStatic();
 }
 
 //==============================================================================
 template <class ConfigSpaceT>
 void GenericJoint<ConfigSpaceT>::updateRelativePrimaryAcceleration() const
 {
-  this->mPrimaryAcceleration =
-      this->getRelativeJacobianStatic() * this->getAccelerationsStatic();
+  this->mPrimaryAcceleration
+      = this->getRelativeJacobianStatic() * this->getAccelerationsStatic();
 }
 
 //==============================================================================
@@ -1520,21 +1690,20 @@ void GenericJoint<ConfigSpaceT>::addVelocityTo(Eigen::Vector6d& vel)
 //==============================================================================
 template <class ConfigSpaceT>
 void GenericJoint<ConfigSpaceT>::setPartialAccelerationTo(
-    Eigen::Vector6d& partialAcceleration,
-    const Eigen::Vector6d& childVelocity)
+    Eigen::Vector6d& partialAcceleration, const Eigen::Vector6d& childVelocity)
 {
   // ad(V, S * dq) + dS * dq
-  partialAcceleration = math::ad(childVelocity,
-                      getRelativeJacobianStatic() * getVelocitiesStatic())
-                    + getRelativeJacobianTimeDerivStatic() * getVelocitiesStatic();
+  partialAcceleration
+      = math::ad(
+            childVelocity, getRelativeJacobianStatic() * getVelocitiesStatic())
+        + getRelativeJacobianTimeDerivStatic() * getVelocitiesStatic();
   // Verification
   assert(!math::isNan(partialAcceleration));
 }
 
 //==============================================================================
 template <class ConfigSpaceT>
-void GenericJoint<ConfigSpaceT>::addAccelerationTo(
-    Eigen::Vector6d& acc)
+void GenericJoint<ConfigSpaceT>::addAccelerationTo(Eigen::Vector6d& acc)
 {
   // Add joint acceleration to _acc
   acc.noalias() += getRelativeJacobianStatic() * getAccelerationsStatic();
@@ -1578,22 +1747,20 @@ GenericJoint<ConfigSpaceT>::getInvProjArtInertiaImplicit() const
 //==============================================================================
 template <class ConfigSpaceT>
 void GenericJoint<ConfigSpaceT>::addChildArtInertiaTo(
-    Eigen::Matrix6d& parentArtInertia,
-    const Eigen::Matrix6d& childArtInertia)
+    Eigen::Matrix6d& parentArtInertia, const Eigen::Matrix6d& childArtInertia)
 {
   switch (Joint::mAspectProperties.mActuatorType)
   {
     case Joint::FORCE:
     case Joint::PASSIVE:
     case Joint::SERVO:
-      addChildArtInertiaToDynamic(parentArtInertia,
-                                       childArtInertia);
+    case Joint::MIMIC:
+      addChildArtInertiaToDynamic(parentArtInertia, childArtInertia);
       break;
     case Joint::ACCELERATION:
     case Joint::VELOCITY:
     case Joint::LOCKED:
-      addChildArtInertiaToKinematic(parentArtInertia,
-                                             childArtInertia);
+      addChildArtInertiaToKinematic(parentArtInertia, childArtInertia);
       break;
     default:
       GenericJoint_REPORT_UNSUPPORTED_ACTUATOR(addChildArtInertiaTo);
@@ -1604,8 +1771,7 @@ void GenericJoint<ConfigSpaceT>::addChildArtInertiaTo(
 //==============================================================================
 template <class ConfigSpaceT>
 void GenericJoint<ConfigSpaceT>::addChildArtInertiaToDynamic(
-    Eigen::Matrix6d& parentArtInertia,
-    const Eigen::Matrix6d& childArtInertia)
+    Eigen::Matrix6d& parentArtInertia, const Eigen::Matrix6d& childArtInertia)
 {
   // Child body's articulated inertia
   JacobianMatrix AIS = childArtInertia * getRelativeJacobianStatic();
@@ -1615,41 +1781,38 @@ void GenericJoint<ConfigSpaceT>::addChildArtInertiaToDynamic(
 
   // Add child body's articulated inertia to parent body's articulated inertia.
   // Note that mT should be updated.
-  parentArtInertia += math::transformInertia(
-        this->getRelativeTransform().inverse(), PI);
+  parentArtInertia
+      += math::transformInertia(this->getRelativeTransform().inverse(), PI);
 }
 
 //==============================================================================
 template <class ConfigSpaceT>
 void GenericJoint<ConfigSpaceT>::addChildArtInertiaToKinematic(
-    Eigen::Matrix6d& parentArtInertia,
-    const Eigen::Matrix6d& childArtInertia)
+    Eigen::Matrix6d& parentArtInertia, const Eigen::Matrix6d& childArtInertia)
 {
   // Add child body's articulated inertia to parent body's articulated inertia.
   // Note that mT should be updated.
   parentArtInertia += math::transformInertia(
-        this->getRelativeTransform().inverse(), childArtInertia);
+      this->getRelativeTransform().inverse(), childArtInertia);
 }
 
 //==============================================================================
 template <class ConfigSpaceT>
 void GenericJoint<ConfigSpaceT>::addChildArtInertiaImplicitTo(
-    Eigen::Matrix6d& parentArtInertia,
-    const Eigen::Matrix6d& childArtInertia)
+    Eigen::Matrix6d& parentArtInertia, const Eigen::Matrix6d& childArtInertia)
 {
   switch (Joint::mAspectProperties.mActuatorType)
   {
     case Joint::FORCE:
     case Joint::PASSIVE:
     case Joint::SERVO:
-      addChildArtInertiaImplicitToDynamic(parentArtInertia,
-                                                childArtInertia);
+    case Joint::MIMIC:
+      addChildArtInertiaImplicitToDynamic(parentArtInertia, childArtInertia);
       break;
     case Joint::ACCELERATION:
     case Joint::VELOCITY:
     case Joint::LOCKED:
-      addChildArtInertiaImplicitToKinematic(parentArtInertia,
-                                                childArtInertia);
+      addChildArtInertiaImplicitToKinematic(parentArtInertia, childArtInertia);
       break;
     default:
       GenericJoint_REPORT_UNSUPPORTED_ACTUATOR(addChildArtInertiaImplicitTo);
@@ -1660,8 +1823,7 @@ void GenericJoint<ConfigSpaceT>::addChildArtInertiaImplicitTo(
 //==============================================================================
 template <class ConfigSpaceT>
 void GenericJoint<ConfigSpaceT>::addChildArtInertiaImplicitToDynamic(
-    Eigen::Matrix6d& parentArtInertia,
-    const Eigen::Matrix6d& childArtInertia)
+    Eigen::Matrix6d& parentArtInertia, const Eigen::Matrix6d& childArtInertia)
 {
   // Child body's articulated inertia
   JacobianMatrix AIS = childArtInertia * getRelativeJacobianStatic();
@@ -1671,20 +1833,19 @@ void GenericJoint<ConfigSpaceT>::addChildArtInertiaImplicitToDynamic(
 
   // Add child body's articulated inertia to parent body's articulated inertia.
   // Note that mT should be updated.
-  parentArtInertia += math::transformInertia(
-        this->getRelativeTransform().inverse(), PI);
+  parentArtInertia
+      += math::transformInertia(this->getRelativeTransform().inverse(), PI);
 }
 
 //==============================================================================
 template <class ConfigSpaceT>
 void GenericJoint<ConfigSpaceT>::addChildArtInertiaImplicitToKinematic(
-    Eigen::Matrix6d& parentArtInertia,
-    const Eigen::Matrix6d& childArtInertia)
+    Eigen::Matrix6d& parentArtInertia, const Eigen::Matrix6d& childArtInertia)
 {
   // Add child body's articulated inertia to parent body's articulated inertia.
   // Note that mT should be updated.
   parentArtInertia += math::transformInertia(
-        this->getRelativeTransform().inverse(), childArtInertia);
+      this->getRelativeTransform().inverse(), childArtInertia);
 }
 
 //==============================================================================
@@ -1697,6 +1858,7 @@ void GenericJoint<ConfigSpaceT>::updateInvProjArtInertia(
     case Joint::FORCE:
     case Joint::PASSIVE:
     case Joint::SERVO:
+    case Joint::MIMIC:
       updateInvProjArtInertiaDynamic(artInertia);
       break;
     case Joint::ACCELERATION:
@@ -1737,14 +1899,14 @@ void GenericJoint<ConfigSpaceT>::updateInvProjArtInertiaKinematic(
 //==============================================================================
 template <class ConfigSpaceT>
 void GenericJoint<ConfigSpaceT>::updateInvProjArtInertiaImplicit(
-    const Eigen::Matrix6d& artInertia,
-    double timeStep)
+    const Eigen::Matrix6d& artInertia, double timeStep)
 {
   switch (Joint::mAspectProperties.mActuatorType)
   {
     case Joint::FORCE:
     case Joint::PASSIVE:
     case Joint::SERVO:
+    case Joint::MIMIC:
       updateInvProjArtInertiaImplicitDynamic(artInertia, timeStep);
       break;
     case Joint::ACCELERATION:
@@ -1753,8 +1915,7 @@ void GenericJoint<ConfigSpaceT>::updateInvProjArtInertiaImplicit(
       updateInvProjArtInertiaImplicitKinematic(artInertia, timeStep);
       break;
     default:
-      GenericJoint_REPORT_UNSUPPORTED_ACTUATOR(
-            updateInvProjArtInertiaImplicit);
+      GenericJoint_REPORT_UNSUPPORTED_ACTUATOR(updateInvProjArtInertiaImplicit);
       break;
   }
 }
@@ -1762,17 +1923,16 @@ void GenericJoint<ConfigSpaceT>::updateInvProjArtInertiaImplicit(
 //==============================================================================
 template <class ConfigSpaceT>
 void GenericJoint<ConfigSpaceT>::updateInvProjArtInertiaImplicitDynamic(
-    const Eigen::Matrix6d& artInertia,
-    double timeStep)
+    const Eigen::Matrix6d& artInertia, double timeStep)
 {
   // Projected articulated inertia
   const JacobianMatrix& Jacobian = getRelativeJacobianStatic();
   Matrix projAI = Jacobian.transpose() * artInertia * Jacobian;
 
   // Add additional inertia for implicit damping and spring force
-  projAI +=
-      (timeStep * Base::mAspectProperties.mDampingCoefficients
-       + timeStep * timeStep * Base::mAspectProperties.mSpringStiffnesses).asDiagonal();
+  projAI += (timeStep * Base::mAspectProperties.mDampingCoefficients
+             + timeStep * timeStep * Base::mAspectProperties.mSpringStiffnesses)
+                .asDiagonal();
 
   // Inversion of projected articulated inertia
   mInvProjArtInertiaImplicit = math::inverse<ConfigSpaceT>(projAI);
@@ -1802,18 +1962,15 @@ void GenericJoint<ConfigSpaceT>::addChildBiasForceTo(
     case Joint::FORCE:
     case Joint::PASSIVE:
     case Joint::SERVO:
-      addChildBiasForceToDynamic(parentBiasForce,
-                                 childArtInertia,
-                                 childBiasForce,
-                                 childPartialAcc);
+    case Joint::MIMIC:
+      addChildBiasForceToDynamic(
+          parentBiasForce, childArtInertia, childBiasForce, childPartialAcc);
       break;
     case Joint::ACCELERATION:
     case Joint::VELOCITY:
     case Joint::LOCKED:
-      addChildBiasForceToKinematic(parentBiasForce,
-                                   childArtInertia,
-                                   childBiasForce,
-                                   childPartialAcc);
+      addChildBiasForceToKinematic(
+          parentBiasForce, childArtInertia, childBiasForce, childPartialAcc);
       break;
     default:
       GenericJoint_REPORT_UNSUPPORTED_ACTUATOR(addChildBiasForceTo);
@@ -1833,14 +1990,15 @@ void GenericJoint<ConfigSpaceT>::addChildBiasForceToDynamic(
   const Eigen::Vector6d beta
       = childBiasForce
         + childArtInertia
-          * (childPartialAcc
-             + getRelativeJacobianStatic() * getInvProjArtInertiaImplicit()
-               *mTotalForce);
+              * (childPartialAcc
+                 + getRelativeJacobianStatic() * getInvProjArtInertiaImplicit()
+                       * mTotalForce);
 
   //    Eigen::Vector6d beta
   //        = _childBiasForce;
   //    beta.noalias() += _childArtInertia * _childPartialAcc;
-  //    beta.noalias() += _childArtInertia *  mJacobian * getInvProjArtInertiaImplicit() * mTotalForce;
+  //    beta.noalias() += _childArtInertia *  mJacobian *
+  //    getInvProjArtInertiaImplicit() * mTotalForce;
 
   // Verification
   assert(!math::isNan(beta));
@@ -1861,13 +2019,15 @@ void GenericJoint<ConfigSpaceT>::addChildBiasForceToKinematic(
   // Compute beta
   const Eigen::Vector6d beta
       = childBiasForce
-        + childArtInertia*(childPartialAcc
-                            + getRelativeJacobianStatic()*getAccelerationsStatic());
+        + childArtInertia
+              * (childPartialAcc
+                 + getRelativeJacobianStatic() * getAccelerationsStatic());
 
   //    Eigen::Vector6d beta
   //        = _childBiasForce;
   //    beta.noalias() += _childArtInertia * _childPartialAcc;
-  //    beta.noalias() += _childArtInertia *  mJacobian * getInvProjArtInertiaImplicit() * mTotalForce;
+  //    beta.noalias() += _childArtInertia *  mJacobian *
+  //    getInvProjArtInertiaImplicit() * mTotalForce;
 
   // Verification
   assert(!math::isNan(beta));
@@ -1889,16 +2049,15 @@ void GenericJoint<ConfigSpaceT>::addChildBiasImpulseTo(
     case Joint::FORCE:
     case Joint::PASSIVE:
     case Joint::SERVO:
-      addChildBiasImpulseToDynamic(parentBiasImpulse,
-                                   childArtInertia,
-                                   childBiasImpulse);
+    case Joint::MIMIC:
+      addChildBiasImpulseToDynamic(
+          parentBiasImpulse, childArtInertia, childBiasImpulse);
       break;
     case Joint::ACCELERATION:
     case Joint::VELOCITY:
     case Joint::LOCKED:
-      addChildBiasImpulseToKinematic(parentBiasImpulse,
-                                     childArtInertia,
-                                     childBiasImpulse);
+      addChildBiasImpulseToKinematic(
+          parentBiasImpulse, childArtInertia, childBiasImpulse);
       break;
     default:
       GenericJoint_REPORT_UNSUPPORTED_ACTUATOR(addChildBiasImpulseTo);
@@ -1914,10 +2073,9 @@ void GenericJoint<ConfigSpaceT>::addChildBiasImpulseToDynamic(
     const Eigen::Vector6d& childBiasImpulse)
 {
   // Compute beta
-  const Eigen::Vector6d beta
-      = childBiasImpulse
-        + childArtInertia*getRelativeJacobianStatic()
-          *getInvProjArtInertia()*mTotalImpulse;
+  const Eigen::Vector6d beta = childBiasImpulse
+                               + childArtInertia * getRelativeJacobianStatic()
+                                     * getInvProjArtInertia() * mTotalImpulse;
 
   // Verification
   assert(!math::isNan(beta));
@@ -1936,14 +2094,14 @@ void GenericJoint<ConfigSpaceT>::addChildBiasImpulseToKinematic(
 {
   // Add child body's bias force to parent body's bias force. Note that mT
   // should be updated.
-  parentBiasImpulse += math::dAdInvT(this->getRelativeTransform(), childBiasImpulse);
+  parentBiasImpulse
+      += math::dAdInvT(this->getRelativeTransform(), childBiasImpulse);
 }
 
 //==============================================================================
 template <class ConfigSpaceT>
 void GenericJoint<ConfigSpaceT>::updateTotalForce(
-    const Eigen::Vector6d& bodyForce,
-    double timeStep)
+    const Eigen::Vector6d& bodyForce, double timeStep)
 {
   assert(timeStep > 0.0);
 
@@ -1955,6 +2113,7 @@ void GenericJoint<ConfigSpaceT>::updateTotalForce(
       break;
     case Joint::PASSIVE:
     case Joint::SERVO:
+    case Joint::MIMIC:
       this->mAspectState.mForces.setZero();
       updateTotalForceDynamic(bodyForce, timeStep);
       break;
@@ -1964,7 +2123,7 @@ void GenericJoint<ConfigSpaceT>::updateTotalForce(
       break;
     case Joint::VELOCITY:
       setAccelerationsStatic(
-            (this->mAspectState.mCommands - getVelocitiesStatic()) / timeStep );
+          (this->mAspectState.mCommands - getVelocitiesStatic()) / timeStep);
       updateTotalForceKinematic(bodyForce, timeStep);
       break;
     case Joint::LOCKED:
@@ -1981,33 +2140,28 @@ void GenericJoint<ConfigSpaceT>::updateTotalForce(
 //==============================================================================
 template <class ConfigSpaceT>
 void GenericJoint<ConfigSpaceT>::updateTotalForceDynamic(
-    const Eigen::Vector6d& bodyForce,
-    double timeStep)
+    const Eigen::Vector6d& bodyForce, double timeStep)
 {
   // Spring force
   const Vector springForce
       = -Base::mAspectProperties.mSpringStiffnesses.cwiseProduct(
-        getPositionsStatic()
-        - Base::mAspectProperties.mRestPositions
-        + getVelocitiesStatic() * timeStep);
+          getPositionsStatic() - Base::mAspectProperties.mRestPositions
+          + getVelocitiesStatic() * timeStep);
 
   // Damping force
   const Vector dampingForce
       = -Base::mAspectProperties.mDampingCoefficients.cwiseProduct(
-        getVelocitiesStatic());
+          getVelocitiesStatic());
 
   //
-  mTotalForce = this->mAspectState.mForces
-      + springForce
-      + dampingForce
-      - getRelativeJacobianStatic().transpose() * bodyForce;
+  mTotalForce = this->mAspectState.mForces + springForce + dampingForce
+                - getRelativeJacobianStatic().transpose() * bodyForce;
 }
 
 //==============================================================================
 template <class ConfigSpaceT>
 void GenericJoint<ConfigSpaceT>::updateTotalForceKinematic(
-    const Eigen::Vector6d& /*bodyForce*/,
-    double /*timeStep*/)
+    const Eigen::Vector6d& /*bodyForce*/, double /*timeStep*/)
 {
   // Do nothing
 }
@@ -2022,6 +2176,7 @@ void GenericJoint<ConfigSpaceT>::updateTotalImpulse(
     case Joint::FORCE:
     case Joint::PASSIVE:
     case Joint::SERVO:
+    case Joint::MIMIC:
       updateTotalImpulseDynamic(bodyImpulse);
       break;
     case Joint::ACCELERATION:
@@ -2042,7 +2197,7 @@ void GenericJoint<ConfigSpaceT>::updateTotalImpulseDynamic(
 {
   //
   mTotalImpulse = mConstraintImpulses
-      - getRelativeJacobianStatic().transpose() * bodyImpulse;
+                  - getRelativeJacobianStatic().transpose() * bodyImpulse;
 }
 
 //==============================================================================
@@ -2063,14 +2218,14 @@ void GenericJoint<ConfigSpaceT>::resetTotalImpulses()
 //==============================================================================
 template <class ConfigSpaceT>
 void GenericJoint<ConfigSpaceT>::updateAcceleration(
-    const Eigen::Matrix6d& artInertia,
-    const Eigen::Vector6d& spatialAcc)
+    const Eigen::Matrix6d& artInertia, const Eigen::Vector6d& spatialAcc)
 {
   switch (Joint::mAspectProperties.mActuatorType)
   {
     case Joint::FORCE:
     case Joint::PASSIVE:
     case Joint::SERVO:
+    case Joint::MIMIC:
       updateAccelerationDynamic(artInertia, spatialAcc);
       break;
     case Joint::ACCELERATION:
@@ -2087,13 +2242,14 @@ void GenericJoint<ConfigSpaceT>::updateAcceleration(
 //==============================================================================
 template <class ConfigSpaceT>
 void GenericJoint<ConfigSpaceT>::updateAccelerationDynamic(
-    const Eigen::Matrix6d& artInertia,
-    const Eigen::Vector6d& spatialAcc)
+    const Eigen::Matrix6d& artInertia, const Eigen::Vector6d& spatialAcc)
 {
   //
-  setAccelerationsStatic( getInvProjArtInertiaImplicit()
-        * (mTotalForce - getRelativeJacobianStatic().transpose()
-           *artInertia*math::AdInvT(this->getRelativeTransform(), spatialAcc)) );
+  setAccelerationsStatic(
+      getInvProjArtInertiaImplicit()
+      * (mTotalForce
+         - getRelativeJacobianStatic().transpose() * artInertia
+               * math::AdInvT(this->getRelativeTransform(), spatialAcc)));
 
   // Verification
   assert(!math::isNan(getAccelerationsStatic()));
@@ -2111,14 +2267,14 @@ void GenericJoint<ConfigSpaceT>::updateAccelerationKinematic(
 //==============================================================================
 template <class ConfigSpaceT>
 void GenericJoint<ConfigSpaceT>::updateVelocityChange(
-    const Eigen::Matrix6d& artInertia,
-    const Eigen::Vector6d& velocityChange)
+    const Eigen::Matrix6d& artInertia, const Eigen::Vector6d& velocityChange)
 {
   switch (Joint::mAspectProperties.mActuatorType)
   {
     case Joint::FORCE:
     case Joint::PASSIVE:
     case Joint::SERVO:
+    case Joint::MIMIC:
       updateVelocityChangeDynamic(artInertia, velocityChange);
       break;
     case Joint::ACCELERATION:
@@ -2135,14 +2291,14 @@ void GenericJoint<ConfigSpaceT>::updateVelocityChange(
 //==============================================================================
 template <class ConfigSpaceT>
 void GenericJoint<ConfigSpaceT>::updateVelocityChangeDynamic(
-    const Eigen::Matrix6d& artInertia,
-    const Eigen::Vector6d& velocityChange)
+    const Eigen::Matrix6d& artInertia, const Eigen::Vector6d& velocityChange)
 {
   //
   mVelocityChanges
       = getInvProjArtInertia()
-      * (mTotalImpulse - getRelativeJacobianStatic().transpose()
-         *artInertia*math::AdInvT(this->getRelativeTransform(), velocityChange));
+        * (mTotalImpulse
+           - getRelativeJacobianStatic().transpose() * artInertia
+                 * math::AdInvT(this->getRelativeTransform(), velocityChange));
 
   // Verification
   assert(!math::isNan(mVelocityChanges));
@@ -2165,25 +2321,28 @@ void GenericJoint<ConfigSpaceT>::updateForceID(
     bool withDampingForces,
     bool withSpringForces)
 {
-  this->mAspectState.mForces = getRelativeJacobianStatic().transpose() * bodyForce;
+  this->mAspectState.mForces
+      = getRelativeJacobianStatic().transpose() * bodyForce;
 
-  // Damping force
+  // Implicit damping force:
+  //   tau_d = -Kd * dq - Kd * h * ddq
   if (withDampingForces)
   {
     const typename ConfigSpaceT::Vector dampingForces
         = -Base::mAspectProperties.mDampingCoefficients.cwiseProduct(
-          getVelocitiesStatic());
+            getVelocitiesStatic() + getAccelerationsStatic() * timeStep);
     this->mAspectState.mForces -= dampingForces;
   }
 
-  // Spring force
+  // Implicit spring force:
+  //   tau_s = -Kp * (q - q0) - Kp * h * dq - Kp * h^2 * ddq
   if (withSpringForces)
   {
     const typename ConfigSpaceT::Vector springForces
         = -Base::mAspectProperties.mSpringStiffnesses.cwiseProduct(
-          getPositionsStatic()
-          - Base::mAspectProperties.mRestPositions
-          + getVelocitiesStatic() * timeStep);
+            getPositionsStatic() - Base::mAspectProperties.mRestPositions
+            + getVelocitiesStatic() * timeStep
+            + getAccelerationsStatic() * timeStep * timeStep);
     this->mAspectState.mForces -= springForces;
   }
 }
@@ -2201,6 +2360,7 @@ void GenericJoint<ConfigSpaceT>::updateForceFD(
     case Joint::FORCE:
     case Joint::PASSIVE:
     case Joint::SERVO:
+    case Joint::MIMIC:
       break;
     case Joint::ACCELERATION:
     case Joint::VELOCITY:
@@ -2218,7 +2378,7 @@ template <class ConfigSpaceT>
 void GenericJoint<ConfigSpaceT>::updateImpulseID(
     const Eigen::Vector6d& bodyImpulse)
 {
-  mImpulses = getRelativeJacobianStatic().transpose()*bodyImpulse;
+  mImpulses = getRelativeJacobianStatic().transpose() * bodyImpulse;
 }
 
 //==============================================================================
@@ -2231,6 +2391,7 @@ void GenericJoint<ConfigSpaceT>::updateImpulseFD(
     case Joint::FORCE:
     case Joint::PASSIVE:
     case Joint::SERVO:
+    case Joint::MIMIC:
       break;
     case Joint::ACCELERATION:
     case Joint::VELOCITY:
@@ -2252,6 +2413,7 @@ void GenericJoint<ConfigSpaceT>::updateConstrainedTerms(double timeStep)
     case Joint::FORCE:
     case Joint::PASSIVE:
     case Joint::SERVO:
+    case Joint::MIMIC:
       updateConstrainedTermsDynamic(timeStep);
       break;
     case Joint::ACCELERATION:
@@ -2267,14 +2429,13 @@ void GenericJoint<ConfigSpaceT>::updateConstrainedTerms(double timeStep)
 
 //==============================================================================
 template <class ConfigSpaceT>
-void GenericJoint<ConfigSpaceT>::updateConstrainedTermsDynamic(
-    double timeStep)
+void GenericJoint<ConfigSpaceT>::updateConstrainedTermsDynamic(double timeStep)
 {
   const double invTimeStep = 1.0 / timeStep;
 
   setVelocitiesStatic(getVelocitiesStatic() + mVelocityChanges);
-  setAccelerationsStatic(getAccelerationsStatic()
-                         + mVelocityChanges * invTimeStep);
+  setAccelerationsStatic(
+      getAccelerationsStatic() + mVelocityChanges * invTimeStep);
   this->mAspectState.mForces.noalias() += mImpulses * invTimeStep;
   // Note: As long as this is only called from BodyNode::updateConstrainedTerms
 }
@@ -2334,7 +2495,7 @@ void GenericJoint<ConfigSpaceT>::updateTotalForceForInvMassMatrix(
 {
   // Compute alpha
   mInvM_a = this->mAspectState.mForces
-      - getRelativeJacobianStatic().transpose() * bodyForce;
+            - getRelativeJacobianStatic().transpose() * bodyForce;
 }
 
 //==============================================================================
@@ -2348,8 +2509,9 @@ void GenericJoint<ConfigSpaceT>::getInvMassMatrixSegment(
   //
   mInvMassMatrixSegment
       = getInvProjArtInertia()
-      * (mInvM_a - getRelativeJacobianStatic().transpose()
-         * artInertia * math::AdInvT(this->getRelativeTransform(), spatialAcc));
+        * (mInvM_a
+           - getRelativeJacobianStatic().transpose() * artInertia
+                 * math::AdInvT(this->getRelativeTransform(), spatialAcc));
 
   // Verification
   assert(!math::isNan(mInvMassMatrixSegment));
@@ -2372,8 +2534,9 @@ void GenericJoint<ConfigSpaceT>::getInvAugMassMatrixSegment(
   //
   mInvMassMatrixSegment
       = getInvProjArtInertiaImplicit()
-      * (mInvM_a - getRelativeJacobianStatic().transpose()
-         * artInertia * math::AdInvT(this->getRelativeTransform(), spatialAcc));
+        * (mInvM_a
+           - getRelativeJacobianStatic().transpose() * artInertia
+                 * math::AdInvT(this->getRelativeTransform(), spatialAcc));
 
   // Verification
   assert(!math::isNan(mInvMassMatrixSegment));
@@ -2387,8 +2550,7 @@ void GenericJoint<ConfigSpaceT>::getInvAugMassMatrixSegment(
 
 //==============================================================================
 template <class ConfigSpaceT>
-void GenericJoint<ConfigSpaceT>::addInvMassMatrixSegmentTo(
-    Eigen::Vector6d& acc)
+void GenericJoint<ConfigSpaceT>::addInvMassMatrixSegmentTo(Eigen::Vector6d& acc)
 {
   //
   acc += getRelativeJacobianStatic() * mInvMassMatrixSegment;

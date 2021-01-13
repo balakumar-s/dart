@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2017, The DART development contributors
+ * Copyright (c) 2011-2019, The DART development contributors
  * All rights reserved.
  *
  * The list of contributors can be found at:
@@ -39,7 +39,7 @@
 namespace dart {
 namespace collision {
 
-class DistanceFilter;
+struct DistanceFilter;
 
 struct DistanceOption
 {
@@ -73,7 +73,7 @@ struct DistanceOption
       const std::shared_ptr<DistanceFilter>& distanceFilter = nullptr);
 };
 
-}  // namespace collision
-}  // namespace dart
+} // namespace collision
+} // namespace dart
 
-#endif  // DART_COLLISION_DISTANCE_OPTION_HPP_
+#endif // DART_COLLISION_DISTANCE_OPTION_HPP_

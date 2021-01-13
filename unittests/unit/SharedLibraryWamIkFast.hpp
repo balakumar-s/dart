@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2017, The DART development contributors
+ * Copyright (c) 2011-2019, The DART development contributors
  * All rights reserved.
  *
  * The list of contributors can be found at:
@@ -48,7 +48,7 @@ public:
 
   // Documentation inherited.
   auto clone(dart::dynamics::InverseKinematics* newIK) const
-      -> std::unique_ptr<GradientMethod>;
+      -> std::unique_ptr<GradientMethod> override;
 
 protected:
   // Documentation inherited.
@@ -72,6 +72,12 @@ protected:
       const IkReal* targetRotation,
       const IkReal* freeParams,
       ikfast::IkSolutionListBase<IkReal>& solutions) override;
+
+  // Documentation inherited.
+  void computeFk(
+      const IkReal* parameters,
+      IkReal* targetTranspose,
+      IkReal* targetRotation) override;
 
   // Documentation inherited.
   const char* getKinematicsHash() override;

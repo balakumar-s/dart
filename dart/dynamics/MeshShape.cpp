@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2017, The DART development contributors
+ * Copyright (c) 2011-2019, The DART development contributors
  * All rights reserved.
  *
  * The list of contributors can be found at:
@@ -36,13 +36,13 @@
 #include <string>
 
 #include <assimp/Importer.hpp>
-#include <assimp/postprocess.h>
 #include <assimp/cimport.h>
+#include <assimp/postprocess.h>
 
-#include "dart/config.hpp"
 #include "dart/common/Console.hpp"
 #include "dart/common/LocalResourceRetriever.hpp"
 #include "dart/common/Uri.hpp"
+#include "dart/config.hpp"
 #include "dart/dynamics/AssimpInputResourceAdaptor.hpp"
 #include "dart/dynamics/BoxShape.hpp"
 
@@ -64,44 +64,43 @@ aiScene::aiScene()
     mNumCameras(0),
     mCameras(nullptr)
 {
-
 }
 
 aiScene::~aiScene()
 {
   delete mRootNode;
 
-  if(mNumMeshes && mMeshes)
-    for(std::size_t a=0; a<mNumMeshes; ++a)
+  if (mNumMeshes && mMeshes)
+    for (std::size_t a = 0; a < mNumMeshes; ++a)
       delete mMeshes[a];
   delete[] mMeshes;
 
-  if(mNumMaterials && mMaterials)
-    for(std::size_t a=0; a<mNumMaterials; ++a)
+  if (mNumMaterials && mMaterials)
+    for (std::size_t a = 0; a < mNumMaterials; ++a)
       delete mMaterials[a];
   delete[] mMaterials;
 
-  if(mNumAnimations && mAnimations)
-    for(std::size_t a=0; a<mNumAnimations; ++a)
+  if (mNumAnimations && mAnimations)
+    for (std::size_t a = 0; a < mNumAnimations; ++a)
       delete mAnimations[a];
   delete[] mAnimations;
 
-  if(mNumTextures && mTextures)
-    for(std::size_t a=0; a<mNumTextures; ++a)
+  if (mNumTextures && mTextures)
+    for (std::size_t a = 0; a < mNumTextures; ++a)
       delete mTextures[a];
   delete[] mTextures;
 
-  if(mNumLights && mLights)
-    for(std::size_t a=0; a<mNumLights; ++a)
+  if (mNumLights && mLights)
+    for (std::size_t a = 0; a < mNumLights; ++a)
       delete mLights[a];
   delete[] mLights;
 
-  if(mNumCameras && mCameras)
-    for(std::size_t a=0; a<mNumCameras; ++a)
+  if (mNumCameras && mCameras)
+    for (std::size_t a = 0; a < mNumCameras; ++a)
       delete mCameras[a];
   delete[] mCameras;
 }
-#endif  // #if !(ASSIMP_AISCENE_CTOR_DTOR_DEFINED)
+#endif // #if !(ASSIMP_AISCENE_CTOR_DTOR_DEFINED)
 
 // We define our own constructor and destructor for aiMaterial, because it seems
 // to be missing from the standard assimp library (see #451)
@@ -111,41 +110,42 @@ aiMaterial::aiMaterial()
   mNumProperties = 0;
   mNumAllocated = 5;
   mProperties = new aiMaterialProperty*[5];
-  for(std::size_t i=0; i<5; ++i)
+  for (std::size_t i = 0; i < 5; ++i)
     mProperties[i] = nullptr;
 }
 
 aiMaterial::~aiMaterial()
 {
-  for(std::size_t i=0; i<mNumProperties; ++i)
+  for (std::size_t i = 0; i < mNumProperties; ++i)
     delete mProperties[i];
 
   delete[] mProperties;
 }
-#endif  // #if !(ASSIMP_AIMATERIAL_CTOR_DTOR_DEFINED)
+#endif // #if !(ASSIMP_AIMATERIAL_CTOR_DTOR_DEFINED)
 
 namespace dart {
 namespace dynamics {
 
-MeshShape::MeshShape(const Eigen::Vector3d& _scale, const aiScene* _mesh,
-                     const std::string& _path,
-                     const common::ResourceRetrieverPtr& _resourceRetriever)
+//==============================================================================
+MeshShape::MeshShape(
+    const Eigen::Vector3d& scale,
+    const aiScene* mesh,
+    const common::Uri& path,
+    common::ResourceRetrieverPtr resourceRetriever)
   : Shape(MESH),
-    mResourceRetriever(_resourceRetriever),
     mDisplayList(0),
     mColorMode(MATERIAL_COLOR),
+    mAlphaMode(BLEND),
     mColorIndex(0)
 {
-  assert(_scale[0] > 0.0);
-  assert(_scale[1] > 0.0);
-  assert(_scale[2] > 0.0);
-
-  setMesh(_mesh, _path, _resourceRetriever);
-  setScale(_scale);
+  setMesh(mesh, path, std::move(resourceRetriever));
+  setScale(scale);
 }
 
-MeshShape::~MeshShape() {
-  delete mMesh;
+//==============================================================================
+MeshShape::~MeshShape()
+{
+  aiReleaseImport(mMesh);
 }
 
 //==============================================================================
@@ -161,129 +161,160 @@ const std::string& MeshShape::getStaticType()
   return type;
 }
 
-const aiScene* MeshShape::getMesh() const {
+//==============================================================================
+const aiScene* MeshShape::getMesh() const
+{
   return mMesh;
 }
 
-const std::string& MeshShape::getMeshUri() const
+//==============================================================================
+std::string MeshShape::getMeshUri() const
+{
+  return mMeshUri.toString();
+}
+
+//==============================================================================
+const common::Uri& MeshShape::getMeshUri2() const
 {
   return mMeshUri;
 }
 
+//==============================================================================
 void MeshShape::update()
 {
   // Do nothing
 }
 
 //==============================================================================
-void MeshShape::notifyAlphaUpdated(double alpha)
-{
-  for(std::size_t i=0; i<mMesh->mNumMeshes; ++i)
-  {
-    aiMesh* mesh = mMesh->mMeshes[i];
-    for(std::size_t j=0; j<mesh->mNumVertices; ++j)
-      mesh->mColors[0][j][3] = alpha;
-  }
-}
-
 const std::string& MeshShape::getMeshPath() const
 {
   return mMeshPath;
 }
 
-void MeshShape::setMesh(
-  const aiScene* _mesh, const std::string& _path,
-  const common::ResourceRetrieverPtr& _resourceRetriever)
+//==============================================================================
+common::ResourceRetrieverPtr MeshShape::getResourceRetriever()
 {
-  mMesh = _mesh;
+  return mResourceRetriever;
+}
 
-  if(nullptr == _mesh) {
-    mMeshPath = "";
-    mMeshUri = "";
+//==============================================================================
+void MeshShape::setMesh(
+    const aiScene* mesh,
+    const std::string& path,
+    common::ResourceRetrieverPtr resourceRetriever)
+{
+  setMesh(mesh, common::Uri(path), std::move(resourceRetriever));
+}
+
+//==============================================================================
+void MeshShape::setMesh(
+    const aiScene* mesh,
+    const common::Uri& uri,
+    common::ResourceRetrieverPtr resourceRetriever)
+{
+  mMesh = mesh;
+
+  if (!mMesh)
+  {
+    mMeshUri.clear();
+    mMeshPath.clear();
     mResourceRetriever = nullptr;
     return;
   }
 
-  common::Uri uri;
-  if(uri.fromString(_path))
-  {
-    mMeshUri = _path;
+  mMeshUri = uri;
 
-    if(uri.mScheme.get_value_or("file") == "file")
-      mMeshPath = uri.mPath.get_value_or("");
-  }
+  if (resourceRetriever)
+    mMeshPath = resourceRetriever->getFilePath(uri);
   else
-  {
-    dtwarn << "[MeshShape::setMesh] Failed parsing URI '" << _path << "'.\n";
-    mMeshUri = "";
-    mMeshPath = "";
-  }
+    mMeshPath.clear();
 
-  mResourceRetriever = _resourceRetriever;
+  mResourceRetriever = std::move(resourceRetriever);
 
-  _updateBoundingBoxDim();
-  updateVolume();
+  incrementVersion();
 }
 
-void MeshShape::setScale(const Eigen::Vector3d& _scale) {
-  assert(_scale[0] > 0.0);
-  assert(_scale[1] > 0.0);
-  assert(_scale[2] > 0.0);
-  mScale = _scale;
-  updateVolume();
-  _updateBoundingBoxDim();
+//==============================================================================
+void MeshShape::setScale(const Eigen::Vector3d& scale)
+{
+  assert((scale.array() > 0.0).all());
+
+  mScale = scale;
+  mIsBoundingBoxDirty = true;
+  mIsVolumeDirty = true;
+
+  incrementVersion();
 }
 
-const Eigen::Vector3d& MeshShape::getScale() const {
+//==============================================================================
+const Eigen::Vector3d& MeshShape::getScale() const
+{
   return mScale;
 }
 
-void MeshShape::setColorMode(ColorMode _mode)
+//==============================================================================
+void MeshShape::setColorMode(ColorMode mode)
 {
-  mColorMode = _mode;
+  mColorMode = mode;
 }
 
+//==============================================================================
 MeshShape::ColorMode MeshShape::getColorMode() const
 {
   return mColorMode;
 }
 
-void MeshShape::setColorIndex(int _index)
+//==============================================================================
+void MeshShape::setAlphaMode(MeshShape::AlphaMode mode)
 {
-  mColorIndex = _index;
+  mAlphaMode = mode;
 }
 
+//==============================================================================
+MeshShape::AlphaMode MeshShape::getAlphaMode() const
+{
+  return mAlphaMode;
+}
+
+//==============================================================================
+void MeshShape::setColorIndex(int index)
+{
+  mColorIndex = index;
+}
+
+//==============================================================================
 int MeshShape::getColorIndex() const
 {
   return mColorIndex;
 }
 
-int MeshShape::getDisplayList() const {
+//==============================================================================
+int MeshShape::getDisplayList() const
+{
   return mDisplayList;
 }
 
-void MeshShape::setDisplayList(int _index) {
-  mDisplayList = _index;
+//==============================================================================
+void MeshShape::setDisplayList(int index)
+{
+  mDisplayList = index;
 }
 
 //==============================================================================
 Eigen::Matrix3d MeshShape::computeInertia(double _mass) const
 {
   // Use bounding box to represent the mesh
-  return BoxShape::computeInertia(mBoundingBox.computeFullExtents(), _mass);
+  return BoxShape::computeInertia(getBoundingBox().computeFullExtents(), _mass);
 }
 
-void MeshShape::updateVolume() {
-  Eigen::Vector3d bounds = mBoundingBox.computeFullExtents();
-  mVolume = bounds.x() * bounds.y() * bounds.z();
-}
-
-void MeshShape::_updateBoundingBoxDim() {
-
-  if(!mMesh)
+//==============================================================================
+void MeshShape::updateBoundingBox() const
+{
+  if (!mMesh)
   {
     mBoundingBox.setMin(Eigen::Vector3d::Zero());
     mBoundingBox.setMax(Eigen::Vector3d::Zero());
+    mIsBoundingBoxDirty = false;
     return;
   }
 
@@ -294,8 +325,10 @@ void MeshShape::_updateBoundingBoxDim() {
   double min_Y = std::numeric_limits<double>::infinity();
   double min_Z = std::numeric_limits<double>::infinity();
 
-  for (unsigned int i = 0; i < mMesh->mNumMeshes; i++) {
-    for (unsigned int j = 0; j < mMesh->mMeshes[i]->mNumVertices; j++) {
+  for (unsigned int i = 0; i < mMesh->mNumMeshes; i++)
+  {
+    for (unsigned int j = 0; j < mMesh->mMeshes[i]->mNumVertices; j++)
+    {
       if (mMesh->mMeshes[i]->mVertices[j].x > max_X)
         max_X = mMesh->mMeshes[i]->mVertices[j].x;
       if (mMesh->mMeshes[i]->mVertices[j].x < min_X)
@@ -310,44 +343,54 @@ void MeshShape::_updateBoundingBoxDim() {
         min_Z = mMesh->mMeshes[i]->mVertices[j].z;
     }
   }
-  mBoundingBox.setMin(Eigen::Vector3d(min_X * mScale[0], min_Y * mScale[1], min_Z * mScale[2]));
-  mBoundingBox.setMax(Eigen::Vector3d(max_X * mScale[0], max_Y * mScale[1], max_Z * mScale[2]));
+  mBoundingBox.setMin(
+      Eigen::Vector3d(min_X * mScale[0], min_Y * mScale[1], min_Z * mScale[2]));
+  mBoundingBox.setMax(
+      Eigen::Vector3d(max_X * mScale[0], max_Y * mScale[1], max_Z * mScale[2]));
+
+  mIsBoundingBoxDirty = false;
 }
 
+//==============================================================================
+void MeshShape::updateVolume() const
+{
+  const Eigen::Vector3d bounds = getBoundingBox().computeFullExtents();
+  mVolume = bounds.x() * bounds.y() * bounds.z();
+  mIsVolumeDirty = false;
+}
+
+//==============================================================================
 const aiScene* MeshShape::loadMesh(
-  const std::string& _uri, const common::ResourceRetrieverPtr& _retriever)
+    const std::string& _uri, const common::ResourceRetrieverPtr& retriever)
 {
   // Remove points and lines from the import.
   aiPropertyStore* propertyStore = aiCreatePropertyStore();
-  aiSetImportPropertyInteger(propertyStore,
-    AI_CONFIG_PP_SBP_REMOVE,
-      aiPrimitiveType_POINT
-    | aiPrimitiveType_LINE
-  );
+  aiSetImportPropertyInteger(
+      propertyStore,
+      AI_CONFIG_PP_SBP_REMOVE,
+      aiPrimitiveType_POINT | aiPrimitiveType_LINE);
 
   // Wrap ResourceRetriever in an IOSystem from Assimp's C++ API.  Then wrap
   // the IOSystem in an aiFileIO from Assimp's C API. Yes, this API is
   // completely ridiculous...
-  AssimpInputResourceRetrieverAdaptor systemIO(_retriever);
+  AssimpInputResourceRetrieverAdaptor systemIO(retriever);
   aiFileIO fileIO = createFileIO(&systemIO);
 
   // Import the file.
   const aiScene* scene = aiImportFileExWithProperties(
-    _uri.c_str(), 
-      aiProcess_GenNormals
-    | aiProcess_Triangulate
-    | aiProcess_JoinIdenticalVertices
-    | aiProcess_SortByPType
-    | aiProcess_OptimizeMeshes,
-    &fileIO,
-    propertyStore
-  );
+      _uri.c_str(),
+      aiProcess_GenNormals | aiProcess_Triangulate
+          | aiProcess_JoinIdenticalVertices | aiProcess_SortByPType
+          | aiProcess_OptimizeMeshes,
+      &fileIO,
+      propertyStore);
 
   // If succeeded, store the importer in the scene to keep it alive. This is
   // necessary because the importer owns the memory that it allocates.
-  if(!scene)
+  if (!scene)
   {
     dtwarn << "[MeshShape::loadMesh] Failed loading mesh '" << _uri << "'.\n";
+    aiReleasePropertyStore(propertyStore);
     return nullptr;
   }
 
@@ -358,29 +401,42 @@ const aiScene* MeshShape::loadMesh(
   // into to figure out whether they are collada files.
   std::string extension;
   const std::size_t extensionIndex = _uri.find_last_of('.');
-  if(extensionIndex != std::string::npos)
+  if (extensionIndex != std::string::npos)
     extension = _uri.substr(extensionIndex);
 
-  std::transform(std::begin(extension), std::end(extension),
-                 std::begin(extension), ::tolower);
+  std::transform(
+      std::begin(extension),
+      std::end(extension),
+      std::begin(extension),
+      ::tolower);
 
-  if(extension == ".dae" || extension == ".zae")
+  if (extension == ".dae" || extension == ".zae")
     scene->mRootNode->mTransformation = aiMatrix4x4();
 
   // Finally, pre-transform the vertices. We can't do this as part of the
   // import process, because we may have changed mTransformation above.
   scene = aiApplyPostProcessing(scene, aiProcess_PreTransformVertices);
-  if(!scene)
+  if (!scene)
     dtwarn << "[MeshShape::loadMesh] Failed pre-transforming vertices.\n";
+
+  aiReleasePropertyStore(propertyStore);
 
   return scene;
 }
 
-const aiScene* MeshShape::loadMesh(const std::string& _fileName)
+//==============================================================================
+const aiScene* MeshShape::loadMesh(
+    const common::Uri& uri, const common::ResourceRetrieverPtr& retriever)
 {
-  const auto retriever = std::make_shared<common::LocalResourceRetriever>();
-  return loadMesh("file://" + _fileName, retriever);
+  return loadMesh(uri.toString(), retriever);
 }
 
-}  // namespace dynamics
-}  // namespace dart
+//==============================================================================
+const aiScene* MeshShape::loadMesh(const std::string& filePath)
+{
+  const auto retriever = std::make_shared<common::LocalResourceRetriever>();
+  return loadMesh("file://" + filePath, retriever);
+}
+
+} // namespace dynamics
+} // namespace dart

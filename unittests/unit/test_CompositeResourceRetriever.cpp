@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2017, The DART development contributors
+ * Copyright (c) 2011-2019, The DART development contributors
  * All rights reserved.
  *
  * The list of contributors can be found at:
@@ -31,14 +31,14 @@
  */
 
 #include <gtest/gtest.h>
-#include "dart/io/CompositeResourceRetriever.hpp"
+#include "dart/utils/CompositeResourceRetriever.hpp"
 #include "TestHelpers.hpp"
 
-using dart::common::Uri;
 using dart::common::Resource;
 using dart::common::ResourcePtr;
 using dart::common::ResourceRetriever;
-using dart::io::CompositeResourceRetriever;
+using dart::common::Uri;
+using dart::utils::CompositeResourceRetriever;
 
 TEST(CompositeResourceRetriever, exists_NothingRegistered_ReturnsFalse)
 {
@@ -66,7 +66,9 @@ TEST(CompositeResourceRetriever, exists_AllRetrieversFail_ReturnsFalse)
   EXPECT_EQ("package://test/foo", retriever2->mExists.front());
 }
 
-TEST(CompositeResourceRetriever, exists_CompositeResourceRetrieverSucceeds_ReturnsTrue)
+TEST(
+    CompositeResourceRetriever,
+    exists_CompositeResourceRetrieverSucceeds_ReturnsTrue)
 {
   auto retriever1 = std::make_shared<PresentResourceRetriever>();
   auto retriever2 = std::make_shared<AbsentResourceRetriever>();
@@ -89,7 +91,9 @@ TEST(CompositeResourceRetriever, exists_CompositeResourceRetrieverSucceeds_Retur
   EXPECT_TRUE(retriever3->mRetrieve.empty());
 }
 
-TEST(CompositeResourceRetriever, exists_DefaultResourceRetrieverSucceeds_ReturnsTrue)
+TEST(
+    CompositeResourceRetriever,
+    exists_DefaultResourceRetrieverSucceeds_ReturnsTrue)
 {
   auto retriever1 = std::make_shared<AbsentResourceRetriever>();
   auto retriever2 = std::make_shared<PresentResourceRetriever>();
@@ -113,10 +117,105 @@ TEST(CompositeResourceRetriever, exists_DefaultResourceRetrieverSucceeds_Returns
   EXPECT_TRUE(retriever3->mRetrieve.empty());
 }
 
+TEST(
+    CompositeResourceRetriever,
+    getFilePath_NothingRegistered_ReturnsEmptyString)
+{
+  CompositeResourceRetriever retriever;
+  EXPECT_EQ(
+      retriever.getFilePath(Uri::createFromString("package://test/foo")), "");
+}
+
+TEST(CompositeResourceRetriever, getFilePath_AllRetrieversFail_ReturnsFalse)
+{
+  auto retriever1 = std::make_shared<AbsentResourceRetriever>();
+  auto retriever2 = std::make_shared<AbsentResourceRetriever>();
+  CompositeResourceRetriever retriever;
+
+  EXPECT_TRUE(retriever.addSchemaRetriever("package", retriever1));
+  retriever.addDefaultRetriever(retriever2);
+
+  EXPECT_EQ(
+      retriever.getFilePath(Uri::createFromString("package://test/foo")), "");
+
+  EXPECT_TRUE(retriever1->mExists.empty());
+  ASSERT_EQ(1u, retriever1->mGetFilePath.size());
+  EXPECT_EQ("package://test/foo", retriever1->mGetFilePath.front());
+  EXPECT_TRUE(retriever1->mRetrieve.empty());
+
+  EXPECT_TRUE(retriever2->mExists.empty());
+  ASSERT_EQ(1u, retriever2->mGetFilePath.size());
+  EXPECT_EQ("package://test/foo", retriever2->mGetFilePath.front());
+  EXPECT_TRUE(retriever2->mRetrieve.empty());
+}
+
+TEST(
+    CompositeResourceRetriever,
+    getFilePath_CompositeResourceRetrieverSucceeds_ReturnsFilePath)
+{
+  auto retriever1 = std::make_shared<PresentResourceRetriever>();
+  auto retriever2 = std::make_shared<AbsentResourceRetriever>();
+  auto retriever3 = std::make_shared<AbsentResourceRetriever>();
+  CompositeResourceRetriever retriever;
+
+  EXPECT_TRUE(retriever.addSchemaRetriever("package", retriever1));
+  EXPECT_TRUE(retriever.addSchemaRetriever("package", retriever2));
+  retriever.addDefaultRetriever(retriever3);
+
+  EXPECT_EQ(
+      retriever.getFilePath(Uri::createFromString("package://test/foo")),
+      "package://test/foo");
+
+  EXPECT_TRUE(retriever2->mExists.empty());
+  ASSERT_EQ(1u, retriever1->mGetFilePath.size());
+  EXPECT_EQ("package://test/foo", retriever1->mGetFilePath.front());
+  EXPECT_TRUE(retriever1->mRetrieve.empty());
+
+  EXPECT_TRUE(retriever2->mExists.empty());
+  EXPECT_TRUE(retriever2->mGetFilePath.empty());
+  EXPECT_TRUE(retriever2->mRetrieve.empty());
+  EXPECT_TRUE(retriever3->mExists.empty());
+  EXPECT_TRUE(retriever3->mGetFilePath.empty());
+  EXPECT_TRUE(retriever3->mRetrieve.empty());
+}
+
+TEST(
+    CompositeResourceRetriever,
+    getFilePath_DefaultResourceRetrieverSucceeds_ReturnsFilePath)
+{
+  auto retriever1 = std::make_shared<AbsentResourceRetriever>();
+  auto retriever2 = std::make_shared<PresentResourceRetriever>();
+  auto retriever3 = std::make_shared<AbsentResourceRetriever>();
+  CompositeResourceRetriever retriever;
+
+  EXPECT_TRUE(retriever.addSchemaRetriever("package", retriever1));
+  retriever.addDefaultRetriever(retriever2);
+  retriever.addDefaultRetriever(retriever3);
+
+  EXPECT_EQ(
+      retriever.getFilePath(Uri::createFromString("package://test/foo")),
+      "package://test/foo");
+
+  EXPECT_TRUE(retriever1->mExists.empty());
+  ASSERT_EQ(1u, retriever1->mGetFilePath.size());
+  EXPECT_EQ("package://test/foo", retriever1->mGetFilePath.front());
+  EXPECT_TRUE(retriever1->mRetrieve.empty());
+
+  EXPECT_TRUE(retriever2->mExists.empty());
+  ASSERT_EQ(1u, retriever2->mGetFilePath.size());
+  EXPECT_EQ("package://test/foo", retriever2->mGetFilePath.front());
+  EXPECT_TRUE(retriever2->mRetrieve.empty());
+
+  EXPECT_TRUE(retriever3->mExists.empty());
+  EXPECT_TRUE(retriever3->mGetFilePath.empty());
+  EXPECT_TRUE(retriever3->mRetrieve.empty());
+}
+
 TEST(CompositeResourceRetriever, retrieve_NothingRegistered_ReturnsNull)
 {
   CompositeResourceRetriever retriever;
-  EXPECT_EQ(nullptr, retriever.retrieve(Uri::createFromString("package://test/foo")));
+  EXPECT_EQ(
+      nullptr, retriever.retrieve(Uri::createFromString("package://test/foo")));
 }
 
 TEST(CompositeResourceRetriever, retrieve_AllRetrieversFail_ReturnsNull)
@@ -128,8 +227,8 @@ TEST(CompositeResourceRetriever, retrieve_AllRetrieversFail_ReturnsNull)
   EXPECT_TRUE(retriever.addSchemaRetriever("package", retriever1));
   retriever.addDefaultRetriever(retriever2);
 
-  EXPECT_EQ(nullptr,
-            retriever.retrieve(Uri::createFromString("package://test/foo")));
+  EXPECT_EQ(
+      nullptr, retriever.retrieve(Uri::createFromString("package://test/foo")));
 
   EXPECT_TRUE(retriever1->mExists.empty());
   ASSERT_EQ(1u, retriever1->mRetrieve.size());
@@ -140,7 +239,9 @@ TEST(CompositeResourceRetriever, retrieve_AllRetrieversFail_ReturnsNull)
   EXPECT_EQ("package://test/foo", retriever2->mRetrieve.front());
 }
 
-TEST(CompositeResourceRetriever, retrieve_CompositeResourceRetrieverSucceeds_ReturnsNonNull)
+TEST(
+    CompositeResourceRetriever,
+    retrieve_CompositeResourceRetrieverSucceeds_ReturnsNonNull)
 {
   auto retriever1 = std::make_shared<PresentResourceRetriever>();
   auto retriever2 = std::make_shared<AbsentResourceRetriever>();
@@ -151,7 +252,9 @@ TEST(CompositeResourceRetriever, retrieve_CompositeResourceRetrieverSucceeds_Ret
   EXPECT_TRUE(retriever.addSchemaRetriever("package", retriever2));
   retriever.addDefaultRetriever(retriever3);
 
-  EXPECT_TRUE(nullptr != retriever.retrieve(Uri::createFromString("package://test/foo")));
+  EXPECT_TRUE(
+      nullptr
+      != retriever.retrieve(Uri::createFromString("package://test/foo")));
 
   EXPECT_TRUE(retriever1->mExists.empty());
   ASSERT_EQ(1u, retriever1->mRetrieve.size());
@@ -163,7 +266,9 @@ TEST(CompositeResourceRetriever, retrieve_CompositeResourceRetrieverSucceeds_Ret
   EXPECT_TRUE(retriever3->mRetrieve.empty());
 }
 
-TEST(CompositeResourceRetriever, retrieve_DefaultResourceRetrieverSucceeds_ReturnsNonNull)
+TEST(
+    CompositeResourceRetriever,
+    retrieve_DefaultResourceRetrieverSucceeds_ReturnsNonNull)
 {
   auto retriever1 = std::make_shared<AbsentResourceRetriever>();
   auto retriever2 = std::make_shared<PresentResourceRetriever>();
@@ -174,7 +279,9 @@ TEST(CompositeResourceRetriever, retrieve_DefaultResourceRetrieverSucceeds_Retur
   retriever.addDefaultRetriever(retriever2);
   retriever.addDefaultRetriever(retriever3);
 
-  EXPECT_TRUE(nullptr != retriever.retrieve(Uri::createFromString("package://test/foo")));
+  EXPECT_TRUE(
+      nullptr
+      != retriever.retrieve(Uri::createFromString("package://test/foo")));
   EXPECT_TRUE(retriever1->mExists.empty());
   ASSERT_EQ(1u, retriever1->mRetrieve.size());
   EXPECT_EQ("package://test/foo", retriever1->mRetrieve.front());

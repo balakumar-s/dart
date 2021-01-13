@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2017, The DART development contributors
+ * Copyright (c) 2011-2019, The DART development contributors
  * All rights reserved.
  *
  * The list of contributors can be found at:
@@ -39,34 +39,13 @@ namespace signal {
 namespace detail {
 
 //==============================================================================
-ConnectionBodyBase::ConnectionBodyBase()
-  : mIsConnected(true)
-{
-  // Do nothing
-}
-
-//==============================================================================
 ConnectionBodyBase::~ConnectionBodyBase()
 {
   // Do nothing
 }
 
-//==============================================================================
-void ConnectionBodyBase::disconnect()
-{
-  mIsConnected = false;
-}
+} // namespace detail
+} // namespace signal
 
-//==============================================================================
-bool ConnectionBodyBase::isConnected() const
-{
-  return mIsConnected;
-}
-
-}  // namespace detail
-}  // namespace signal
-
-}  // namespace common
-}  // namespace dart
-
-
+} // namespace common
+} // namespace dart

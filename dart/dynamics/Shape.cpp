@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2017, The DART development contributors
+ * Copyright (c) 2011-2019, The DART development contributors
  * All rights reserved.
  *
  * The list of contributors can be found at:
@@ -42,12 +42,15 @@ namespace dynamics {
 //==============================================================================
 Shape::Shape(ShapeType type)
   : mBoundingBox(),
+    mIsBoundingBoxDirty(true),
     mVolume(0.0),
+    mIsVolumeDirty(true),
     mID(mCounter++),
     mVariance(STATIC),
-    mType(type)
+    mType(type),
+    onVersionChanged(mVersionChangedSignal)
 {
-  // Do nothing
+  mVersion = 1;
 }
 
 //==============================================================================
@@ -56,9 +59,10 @@ Shape::Shape()
     mVolume(0.0),
     mID(mCounter++),
     mVariance(STATIC),
-    mType(UNSUPPORTED)
+    mType(UNSUPPORTED),
+    onVersionChanged(mVersionChangedSignal)
 {
-  // Do nothing
+  mVersion = 1;
 }
 
 //==============================================================================
@@ -70,7 +74,10 @@ Shape::~Shape()
 //==============================================================================
 const math::BoundingBox& Shape::getBoundingBox() const
 {
-    return mBoundingBox;
+  if (mIsBoundingBoxDirty)
+    updateBoundingBox();
+
+  return mBoundingBox;
 }
 
 //==============================================================================
@@ -88,11 +95,14 @@ Eigen::Matrix3d Shape::computeInertiaFromMass(double mass) const
 //==============================================================================
 double Shape::getVolume() const
 {
+  if (mIsVolumeDirty)
+    updateVolume();
+
   return mVolume;
 }
 
 //==============================================================================
-int Shape::getID() const
+std::size_t Shape::getID() const
 {
   return mID;
 }
@@ -130,7 +140,7 @@ unsigned int Shape::getDataVariance() const
 //==============================================================================
 bool Shape::checkDataVariance(DataVariance type) const
 {
-  if(STATIC == type)
+  if (STATIC == type)
     return STATIC == mVariance;
 
   return (type & mVariance) != 0x00;
@@ -167,7 +177,16 @@ void Shape::notifyColorUpdated(const Eigen::Vector4d& /*color*/)
 }
 
 //==============================================================================
-int Shape::mCounter = PRIMITIVE_MAGIC_NUMBER;
+std::size_t Shape::incrementVersion()
+{
+  ++mVersion;
+  mVersionChangedSignal.raise(this, mVersion);
 
-}  // namespace dynamics
-}  // namespace dart
+  return mVersion;
+}
+
+//==============================================================================
+std::atomic_int Shape::mCounter{PRIMITIVE_MAGIC_NUMBER};
+
+} // namespace dynamics
+} // namespace dart

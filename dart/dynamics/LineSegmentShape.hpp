@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2017, The DART development contributors
+ * Copyright (c) 2011-2019, The DART development contributors
  * All rights reserved.
  *
  * The list of contributors can be found at:
@@ -49,8 +49,10 @@ public:
   LineSegmentShape(float _thickness = 1.0f);
 
   /// Constructor for creating a simple line segment that connects two vertices
-  LineSegmentShape(const Eigen::Vector3d& _v1, const Eigen::Vector3d& _v2,
-                   float _thickness = 1.0f);
+  LineSegmentShape(
+      const Eigen::Vector3d& _v1,
+      const Eigen::Vector3d& _v2,
+      float _thickness = 1.0f);
 
   // Documentation inherited.
   const std::string& getType() const override;
@@ -109,9 +111,11 @@ public:
   // TODO(MXG): Consider supporting colors-per-vertex
 
 protected:
+  // Documentation inherited.
+  void updateBoundingBox() const override;
 
   // Documentation inherited
-  void updateVolume() override;
+  void updateVolume() const override;
 
   /// Line thickness for rendering
   float mThickness;
@@ -124,7 +128,7 @@ protected:
 
   /// A dummy vertex that can be returned when an out-of-bounds vertex is
   /// requested
-  const Eigen::Vector3d mDummyVertex;
+  static const Eigen::Vector3d mDummyVertex;
 };
 
 } // namespace dynamics

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2017, The DART development contributors
+ * Copyright (c) 2011-2019, The DART development contributors
  * All rights reserved.
  *
  * The list of contributors can be found at:
@@ -34,6 +34,7 @@
 #define DART_DYNAMICS_REFERENTIALSKELETON_HPP_
 
 #include <unordered_map>
+#include <unordered_set>
 
 #include "dart/dynamics/MetaSkeleton.hpp"
 #include "dart/dynamics/SmartPointer.hpp"
@@ -46,13 +47,16 @@ namespace dynamics {
 class ReferentialSkeleton : public MetaSkeleton
 {
 public:
-
   /// Remove copy operator
   /// TODO(MXG): Consider allowing this
   ReferentialSkeleton& operator=(const ReferentialSkeleton& _other) = delete;
 
   /// Default destructor
   virtual ~ReferentialSkeleton() = default;
+
+  // Documentation inherited
+  std::unique_ptr<common::LockableReference> getLockableReference()
+      const override;
 
   //----------------------------------------------------------------------------
   /// \{ \name Name
@@ -69,6 +73,13 @@ public:
   //----------------------------------------------------------------------------
   /// \{ \name Structural Properties
   //----------------------------------------------------------------------------
+
+  /// Returns number of skeletons associated with this ReferentialSkeleton.
+  std::size_t getNumSkeletons() const;
+
+  /// Returns whether this ReferentialSkeleton contains any BodyNode or Joint
+  /// from \c skel.
+  bool hasSkeleton(const Skeleton* skel) const;
 
   // Documentation inherited
   std::size_t getNumBodyNodes() const override;
@@ -115,7 +126,11 @@ public:
       const std::string& name) const override;
 
   // Documentation inherited
-  std::size_t getIndexOf(const BodyNode* _bn, bool _warning=true) const override;
+  bool hasBodyNode(const BodyNode* bodyNode) const override;
+
+  // Documentation inherited
+  std::size_t getIndexOf(
+      const BodyNode* _bn, bool _warning = true) const override;
 
   // Documentation inherited
   std::size_t getNumJoints() const override;
@@ -161,7 +176,11 @@ public:
   std::vector<const Joint*> getJoints(const std::string& name) const override;
 
   // Documentation inherited
-  std::size_t getIndexOf(const Joint* _joint, bool _warning=true) const override;
+  bool hasJoint(const Joint* joint) const override;
+
+  // Documentation inherited
+  std::size_t getIndexOf(
+      const Joint* _joint, bool _warning = true) const override;
 
   // Documentation inherited
   std::size_t getNumDofs() const override;
@@ -179,8 +198,8 @@ public:
   std::vector<const DegreeOfFreedom*> getDofs() const override;
 
   // Documentation inherited
-  std::size_t getIndexOf(const DegreeOfFreedom* _dof,
-                    bool _warning=true) const override;
+  std::size_t getIndexOf(
+      const DegreeOfFreedom* _dof, bool _warning = true) const override;
 
   /// \}
 
@@ -193,8 +212,7 @@ public:
 
   // Documentation inherited
   math::Jacobian getJacobian(
-      const JacobianNode* _node,
-      const Frame* _inCoordinatesOf) const override;
+      const JacobianNode* _node, const Frame* _inCoordinatesOf) const override;
 
   // Documentation inherited
   math::Jacobian getJacobian(
@@ -211,7 +229,8 @@ public:
   math::Jacobian getWorldJacobian(const JacobianNode* _node) const override;
 
   // Documentation inherited
-  math::Jacobian getWorldJacobian(const JacobianNode* _node,
+  math::Jacobian getWorldJacobian(
+      const JacobianNode* _node,
       const Eigen::Vector3d& _localOffset) const override;
 
   // Documentation inherited
@@ -236,8 +255,7 @@ public:
 
   // Documentation inherited
   math::Jacobian getJacobianSpatialDeriv(
-      const JacobianNode* _node,
-      const Frame* _inCoordinatesOf) const override;
+      const JacobianNode* _node, const Frame* _inCoordinatesOf) const override;
 
   // Documentation inherited
   math::Jacobian getJacobianSpatialDeriv(
@@ -256,8 +274,7 @@ public:
 
   // Documentation inherited
   math::Jacobian getJacobianClassicDeriv(
-      const JacobianNode* _node,
-      const Frame* _inCoordinatesOf) const override;
+      const JacobianNode* _node, const Frame* _inCoordinatesOf) const override;
 
   // Documentation inherited
   math::Jacobian getJacobianClassicDeriv(
@@ -385,7 +402,6 @@ public:
   /// \}
 
 protected:
-
   /// Default constructor. Protected to avoid blank and useless instantiations
   /// of ReferentialSkeleton.
   ReferentialSkeleton() = default;
@@ -454,6 +470,14 @@ protected:
   /// Name of this ReferentialSkeleton
   std::string mName;
 
+  /// Skeletons that this ReferentialSkeleton contains any BodyNode or Joint
+  /// from the Skeletons.
+  std::unordered_set<const Skeleton*> mSkeletons;
+
+  /// Mutexes of the skeletons. The mutexes are sorted in order of memory
+  /// addresses.
+  std::set<std::mutex*> mSkeletonMutexes;
+
   /// BodyNodes that this ReferentialSkeleton references. These hold strong
   /// references to ensure that the BodyNodes do not disappear
   std::vector<BodyNodePtr> mBodyNodes;
@@ -509,6 +533,15 @@ protected:
 
   /// Cache for constraint force vector
   mutable Eigen::VectorXd mFc;
+
+private:
+  /// Add a Skeleton to this ReferentialSkeleton, ignoring its Joint and
+  /// DegreesOfFreedom. This can only be used by this class.
+  void registerSkeleton(const Skeleton* skel);
+
+  /// Removes a Skeleton from this ReferentialSkeleton. This can only be used by
+  /// this class.
+  void unregisterSkeleton(const Skeleton* skel);
 };
 
 } // namespace dynamics

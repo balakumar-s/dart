@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2017, The DART development contributors
+ * Copyright (c) 2011-2019, The DART development contributors
  * All rights reserved.
  *
  * The list of contributors can be found at:
@@ -30,12 +30,12 @@
  *   POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <iostream>
-#include <fstream>
-#include "dart/common/Console.hpp"
-#include "dart/common/Uri.hpp"
 #include "dart/common/LocalResourceRetriever.hpp"
+#include <fstream>
+#include <iostream>
+#include "dart/common/Console.hpp"
 #include "dart/common/LocalResource.hpp"
+#include "dart/common/Uri.hpp"
 
 namespace dart {
 namespace common {
@@ -43,20 +43,13 @@ namespace common {
 //==============================================================================
 bool LocalResourceRetriever::exists(const Uri& _uri)
 {
-  // Open and close the file to check if it exists. It would be more efficient
-  // to stat() it, but that is not portable.
-  if(_uri.mScheme.get_value_or("file") != "file")
-    return false;
-  else if (!_uri.mPath)
-    return false;
-
-  return std::ifstream(_uri.getFilesystemPath(), std::ios::binary).good();
+  return !getFilePath(_uri).empty();
 }
 
 //==============================================================================
 common::ResourcePtr LocalResourceRetriever::retrieve(const Uri& _uri)
 {
-  if(_uri.mScheme.get_value_or("file") != "file")
+  if (_uri.mScheme.get_value_or("file") != "file")
     return nullptr;
   else if (!_uri.mPath)
     return nullptr;
@@ -64,10 +57,28 @@ common::ResourcePtr LocalResourceRetriever::retrieve(const Uri& _uri)
   const auto resource
       = std::make_shared<LocalResource>(_uri.getFilesystemPath());
 
-  if(resource->isGood())
+  if (resource->isGood())
     return resource;
   else
     return nullptr;
+}
+
+//==============================================================================
+std::string LocalResourceRetriever::getFilePath(const Uri& uri)
+{
+  // Open and close the file to check if it exists. It would be more efficient
+  // to stat() it, but that is not portable.
+  if (uri.mScheme.get_value_or("file") != "file")
+    return "";
+  else if (!uri.mPath)
+    return "";
+
+  const auto path = uri.getFilesystemPath();
+
+  if (std::ifstream(path, std::ios::binary).good())
+    return path;
+  else
+    return "";
 }
 
 } // namespace common
