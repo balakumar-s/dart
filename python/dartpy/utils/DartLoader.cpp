@@ -63,12 +63,23 @@ void DartLoader(py::module& m)
           "parseSkeleton",
           +[](dart::utils::DartLoader* self,
               const dart::common::Uri& _uri,
+              unsigned int _flags)
+              -> dart::dynamics::SkeletonPtr {
+             return self->parseSkeleton(_uri, nullptr, _flags);
+          },
+          ::py::arg("uri"),
+          ::py::arg("flags"))
+      .def(
+          "parseSkeleton",
+          +[](dart::utils::DartLoader* self,
+              const dart::common::Uri& _uri,
               const dart::common::ResourceRetrieverPtr& _resourceRetriever)
               -> dart::dynamics::SkeletonPtr {
             return self->parseSkeleton(_uri, _resourceRetriever);
           },
           ::py::arg("uri"),
           ::py::arg("resourceRetriever"))
+    
       .def(
           "parseSkeletonString",
           +[](dart::utils::DartLoader* self,
